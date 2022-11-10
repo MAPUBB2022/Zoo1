@@ -3,31 +3,67 @@ package repository.memoryRepo;
 import domain.Instructor;
 import repository.InstructorRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryInstructorRepository implements InstructorRepository {
-    @Override
-    public void add(Instructor instructor) {
+    private List<Instructor> allInstructors;
 
+    public InMemoryInstructorRepository(List<Instructor> allInstructors) {
+        this.allInstructors = new ArrayList<>();
+        this.populateInstructors();
     }
 
-    @Override
-    public void delete(Integer integer) {
+    private void populateInstructors(){
+        /*
+        Instructor instructor1 = new Instructor("","","","");
+        Instructor instructor2 = new Instructor("","","","");
+        Instructor instructor3 = new Instructor("","","","");
+        Instructor instructor4 = new Instructor("","","","");
 
-    }
-
-    @Override
-    public void update(Instructor instructor, Integer integer) {
-
-    }
-
-    @Override
-    public Instructor findByID(Integer integer) {
-        return null;
+        this.add(instructor1);
+        this.add(instructor2);
+        this.add(instructor3);
+        this.add(instructor4);
+         */
     }
 
     @Override
     public List<Instructor> getAllInstructors() {
+        return allInstructors;
+    }
+
+    @Override
+    public void add(Instructor instructor) {
+        for (Instructor instr: this.allInstructors){
+            if (instr.getID().equals(instructor.getID())){
+                System.out.println("Instructor with this ID already exists");
+                return;
+            }
+        }
+        this.allInstructors.add(instructor);
+    }
+
+    @Override
+    public void delete(String id) {
+        Instructor instructor = this.findbyId(id);
+        this.allInstructors.remove(instructor);
+    }
+
+    @Override
+    public void update(String id, Instructor instructor) {
+        Instructor instr = this.findbyId(id);
+        int position = this.allInstructors.indexOf(instr);
+        this.allInstructors.set(position, instructor);
+    }
+
+    @Override
+    public Instructor findbyId(String id) {
+        for (Instructor instructor: this.allInstructors){
+            if(instructor.getID().equals(id))
+                return instructor;
+        }
         return null;
     }
+
 }
