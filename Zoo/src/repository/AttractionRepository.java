@@ -4,6 +4,6 @@ import domain.Attraction;
 
 import java.util.List;
 
-public interface AttractionRepository extends ICrudRepository<Integer, Attraction>{
+public interface AttractionRepository extends ICrudRepository<String, Attraction>{
     List<Attraction> getAllAttractions();
 }

@@ -2,6 +2,7 @@ package domain;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Guest extends Person implements Comparable<Guest>{
@@ -16,6 +17,12 @@ public class Guest extends Person implements Comparable<Guest>{
         this.attractions = attractions;
     }
 
+    public Guest(String firstName, String lastName, LocalDate birthday) {
+        super(firstName, lastName);
+        this.birthday = birthday;
+        this.finalSum = 0;
+        this.attractions = new ArrayList<Attraction>();
+    }
     @Override
     String getData() {
         String attractions_name = "";
@@ -62,6 +69,5 @@ public class Guest extends Person implements Comparable<Guest>{
         if (this.finalSum < o.finalSum) return 1;
         else if (this.finalSum == o.finalSum) return 0;
         else return -1;
-
     }
 }

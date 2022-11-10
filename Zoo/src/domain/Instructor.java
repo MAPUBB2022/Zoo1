@@ -6,7 +6,7 @@ public class Instructor extends Person{
     public List<Attraction>  attractionsOfInstructor;
     private double finalSumFromGuests;
 
-    public Instructor( List<Attraction> attractionsOfInstructor, String firstName, String lastName) {
+    public Instructor(List<Attraction> attractionsOfInstructor, String firstName, String lastName) {
         super(firstName, lastName);
         this.attractionsOfInstructor = attractionsOfInstructor;
         calculateSum();

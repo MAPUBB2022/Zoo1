@@ -48,19 +48,19 @@ public class InMemoryGuestRepository implements GuestRepository {
 
     @Override
     public void delete(String id) {
-        Guest guest = this.findbyId(id);
+        Guest guest = this.findByID(id);
         this.allGuests.remove(guest);
     }
 
     @Override
     public void update(String id, Guest guest) {
-        Guest g = this.findbyId(id);
+        Guest g = this.findByID(id);
         int position = this.allGuests.indexOf(g);
         this.allGuests.set(position,guest);
     }
 
     @Override
-    public Guest findbyId(String id) {
+    public Guest findByID(String id) {
         for (Guest g: this.allGuests){
             if (g.getID().equals(id))
                 return g;

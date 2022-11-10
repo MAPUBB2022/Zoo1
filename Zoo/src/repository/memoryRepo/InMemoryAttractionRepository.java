@@ -39,7 +39,7 @@ public class InMemoryAttractionRepository implements AttractionRepository {
     @Override
     public void add(Attraction attraction) {
         for (Attraction attr: this.allAttractions){
-            if (attr.getID() == attraction.getID()){
+            if (attr.getID().equals(attraction.getID())){
                 System.out.println("Attraction with this ID already exists");
                 return;
             }
@@ -49,19 +49,19 @@ public class InMemoryAttractionRepository implements AttractionRepository {
 
     @Override
     public void delete(String id) {
-        Attraction attraction = this.findbyId(id);
+        Attraction attraction = this.findByID(id);
         this.allAttractions.remove(attraction);
     }
 
     @Override
     public void update(String id, Attraction attraction) {
-        Attraction attr = this.findbyId(id);
+        Attraction attr = this.findByID(id);
         int position = this.allAttractions.indexOf(attr);
         this.allAttractions.set(position,attraction);
     }
 
     @Override
-    public Attraction findbyId(String id) {
+    public Attraction findByID(String id) {
         for (Attraction attraction: this.allAttractions){
             if (attraction.getID().equals(id))
                 return attraction;

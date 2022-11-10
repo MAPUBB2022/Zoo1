@@ -46,19 +46,19 @@ public class InMemoryInstructorRepository implements InstructorRepository {
 
     @Override
     public void delete(String id) {
-        Instructor instructor = this.findbyId(id);
+        Instructor instructor = this.findByID(id);
         this.allInstructors.remove(instructor);
     }
 
     @Override
     public void update(String id, Instructor instructor) {
-        Instructor instr = this.findbyId(id);
+        Instructor instr = this.findByID(id);
         int position = this.allInstructors.indexOf(instr);
         this.allInstructors.set(position, instructor);
     }
 
     @Override
-    public Instructor findbyId(String id) {
+    public Instructor findByID(String id) {
         for (Instructor instructor: this.allInstructors){
             if(instructor.getID().equals(id))
                 return instructor;
