@@ -68,10 +68,6 @@ public class UI {
                 Scanner in_ = new Scanner(System.in);
                 choose = in_.nextInt();
                 if(choose == 1) {
-                    AttractionRepository attractionRepository = new InMemoryAttractionRepository();
-                    GuestRepository guestRepository = new InMemoryGuestRepository(null);
-                    InstructorRepository instructorRepository = new InMemoryInstructorRepository(null);
-                    RegistrationSystem registrationSystem = new RegistrationSystem(attractionRepository,guestRepository,instructorRepository);
                     System.out.println("Gib mir dein Vorname: \n");
                     Scanner firstName_ = new Scanner(System.in);
                     String firstName = firstName_.nextLine();
@@ -79,7 +75,7 @@ public class UI {
                     Scanner lastName_ = new Scanner(System.in);
                     String lastName = lastName_.nextLine();
                     boolean found = false;
-                    for(Instructor i: registrationSystem.getAllInstructors()){
+                    for(Instructor i: this.controller.getAllInstructors()){
                         if(i.getFirstName() == firstName && i.getLastName() == lastName) {
                             System.out.println("Du bist schon ein Instruktor! \n");
                             found  = true;
@@ -88,15 +84,10 @@ public class UI {
                     }
                     if(found == false) {
                         Instructor instructor = new Instructor(null,firstName, lastName);
-                        registrationSystem.getAllInstructors().add(instructor);
+                        this.controller.getAllInstructors().add(instructor);
                     }
                 }
                 else if(choose == 2){
-                    AttractionRepository attractionRepository = new InMemoryAttractionRepository();
-                    GuestRepository guestRepository = new InMemoryGuestRepository(null);
-                    InstructorRepository instructorRepository = new InMemoryInstructorRepository(null);
-                    RegistrationSystem registrationSystem = new RegistrationSystem(attractionRepository,guestRepository,instructorRepository);
-
                     System.out.println("Gib mir dein Vorname: \n");
                     Scanner firstName_ = new Scanner(System.in);
                     String firstName = firstName_.nextLine();
@@ -105,7 +96,7 @@ public class UI {
                     Scanner lastName_ = new Scanner(System.in);
                     String lastName = lastName_.nextLine();
 
-                    for(Instructor i: registrationSystem.getAllInstructors()){
+                    for(Instructor i: this.controller.getAllInstructors()){
                         if(i.getFirstName() == firstName && i.getLastName() == lastName) {
                             System.out.println("Gib mir dein ID: ");
                             Scanner id_ = new Scanner(System.in);
@@ -124,14 +115,8 @@ public class UI {
                     System.out.println("Gib mir dein ID: ");
                     Scanner id_ = new Scanner(System.in);
                     String id = id_.nextLine();
-
-                    AttractionRepository attractionRepository = new InMemoryAttractionRepository();
-                    GuestRepository guestRepository = new InMemoryGuestRepository(null);
-                    InstructorRepository instructorRepository = new InMemoryInstructorRepository(null);
-                    RegistrationSystem registrationSystem = new RegistrationSystem(attractionRepository,guestRepository,instructorRepository);
-
                     boolean found = false;
-                    for(Instructor i: registrationSystem.getAllInstructors()){
+                    for(Instructor i: this.controller.getAllInstructors()){
                         if(i.getID() == id){
                             found = true;
                             System.out.println("Gib mir der Name der Attraktion: \n");
@@ -164,11 +149,6 @@ public class UI {
                     if(found == false) System.out.println("Du bist nicht ein Instruktor, du kannst nichst machen! \n");
                 }
                 else if(choose == 4){
-                    AttractionRepository attractionRepository = new InMemoryAttractionRepository();
-                    GuestRepository guestRepository = new InMemoryGuestRepository(null);
-                    InstructorRepository instructorRepository = new InMemoryInstructorRepository(null);
-                    RegistrationSystem registrationSystem = new RegistrationSystem(attractionRepository,guestRepository,instructorRepository);
-
                     System.out.println("Gib mir dein Vorname: \n");
                     Scanner firstName_ = new Scanner(System.in);
                     String firstName = firstName_.nextLine();
@@ -177,7 +157,7 @@ public class UI {
                     Scanner lastName_ = new Scanner(System.in);
                     String lastName = lastName_.nextLine();
 
-                    for(Instructor i: registrationSystem.getAllInstructors()){
+                    for(Instructor i: this.controller.getAllInstructors()){
                         if(i.getFirstName() == firstName && i.getLastName() == lastName) {
                             System.out.println("Gib mir dein ID: ");
                             Scanner id_ = new Scanner(System.in);
@@ -189,7 +169,7 @@ public class UI {
                                 String idAttraction = id_.nextLine();
                                 for(Attraction a: i.attractionOfInstructor){
                                     if(a.getID() == idAttraction){
-                                        registrationSystem.deleteAttraction(id,idAttraction);
+                                        this.controller.deleteAttraction(id,idAttraction);
                                     }
                                 }
                             }
@@ -208,12 +188,10 @@ public class UI {
                 Scanner in_ = new Scanner(System.in);
                 choose = in_.nextInt();
                 if(choose == 1){
-                    AttractionRepository attractionRepository = new InMemoryAttractionRepository();
-                    attractionRepository.getAllAttractions();
+                    this.controller.getAllAttractions();
                 }
                 else if(choose == 2){
-                    InstructorRepository instructorRepository = new InMemoryInstructorRepository(null);
-                    instructorRepository.getAllInstructors();
+                    this.controller.getAllInstructors();
                 }
                 else if(choose == 3){
                     showMenuManager();
