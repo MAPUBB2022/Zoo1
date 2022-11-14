@@ -2,20 +2,22 @@ package ui;
 
 import domain.Attraction;
 import domain.Guest;
+import domain.Instructor;
 import domain.Weekday;
 import registration.RegistrationSystem;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Scanner;
 
 public class UI {
-    private RegistrationSystem controller;
+    private final RegistrationSystem controller;
 
     public UI(RegistrationSystem controller) {
         this.controller = controller;
     }
 
-    public void showMenuGuestRegistration() {
+    public void showMenuRegistration() {
         System.out.println("""
                 1. Registration
                 2. Schon registriert
@@ -36,10 +38,10 @@ public class UI {
 
     public void showMenuInstructor(){
         System.out.println("""
-                1. Registration
-                2. Zeige gehältende Attraktionen
-                3. Neue Attraktion einfügen
-                4. Attraktion absagen
+                1. Zeige gehältende Attraktionen
+                2. Neue Attraktion einfügen
+                3. Attraktion absagen
+                4. Zeige Summe von Besuchern
                 5. Exit
                 """);
     }
@@ -48,104 +50,294 @@ public class UI {
         System.out.println("""
                 1. Zeige alle Attraktionen
                 2. Zeige alle Instruktoren
-                3. Exit
+                3. Zeige alle Besuchern
+                4. Zeige alle Besuchern absteigend sortiert nach Endsumme
+                5. Zeige Besuchern einer Attraktion
+                6. neuen Instruktor für eine Attraktion auswählen
+                7. Exit
+                """);
+    }
+
+    // menu Instructor - Guest - Manager
+    public void showMenuIGM(){
+        System.out.println("""
+                1. Instruktor
+                2. Besucher
+                3. Manager
                 """);
     }
 
     public void getUserChoice(){
-        System.out.println("Wähle eine Option");
-        System.out.println("1. Instruktor");
-        System.out.println("2. Besucher");
-        System.out.println("3. Manager");
+        System.out.println("Wähle eine Option: ");
+        this.showMenuIGM();
         Scanner in = new Scanner(System.in);
-        Integer choice =  in.nextInt(), choiceMenu;
+        int choice = in.nextInt(), choiceMenu = 0;
         boolean successful;
-        String idGuest = null, idAttraction;
-        while (choice == 1 || choice == 2 || choice == 3){
-            if (choice == 1){
-                showMenuInstructor();
-            }
-            else if (choice == 2){
-                choiceMenu = 0;
-                while (choiceMenu != 1 && choiceMenu !=2) {
-                    showMenuGuestRegistration();
+        String idGuest = null, idAttraction = null, idInstructor, emptyLine, username = null, password;
+        while (choice == 1 || choice == 2 || choice == 3) {
+            if (choice == 1) {
+                successful = false;
+                while (!successful) {
+                    showMenuRegistration();
                     choiceMenu = in.nextInt();
-                    switch (choice){
+                    switch (choiceMenu) {
                         case 1:
-                            Guest guest = readInGuest();
-                            successful = this.controller.addGuest(guest);
+                            // registration
+                            Instructor instructor = readInInstructor();
+                            username = instructor.getID();
+                            successful = this.controller.addInstructor(instructor);
                             if (successful) {
                                 System.out.println("Registration erfolgreich!\n");
-                                idGuest = guest.getID();
-                                System.out.println("Deine ID ist: " + idGuest + "\n");
                             } else
                                 System.out.println("Registration nicht möglich!\n");
                             break;
                         case 2:
-                            System.out.println("Gib deine ID an");
-                            idGuest = in.nextLine();
+                            // authentification
+                            System.out.print("Gib deinen Username an: ");
+                            emptyLine = in.nextLine();
+                            username = in.nextLine();
+                            System.out.print("Gib dein Passwort an: ");
+                            password = in.nextLine();
+                            Instructor instr = this.controller.findInstructorByUsername(username);
+                            if (instr != null) {
+                                while (!instr.matchesPassword(password)) {
+                                    System.out.println("Falsches Passwort, versuche es wieder: ");
+                                    password = in.nextLine();
+                                }
+                                successful = true;
+                                System.out.println("Das Passwort passt!");
+                            } else
+                                System.out.println("Es gibt keine Instruktor mit diesem Username");
+                            break;
                         default:
                             System.out.println("Es gibt so eine Option nicht");
+                            break;
                     }
                 }
-                while (choiceMenu != 8){
-                    showMenuGuest();
+                showMenuInstructor();
+                choiceMenu = in.nextInt();
+                while (choiceMenu != 5) {
                     switch (choiceMenu) {
                         case 1:
-                            System.out.println(this.controller.getAttractionsSortedByTitle());
+                            Instructor instructor = this.controller.findInstructorByUsername(username);
+                            System.out.println(instructor.getAttractions());
                             break;
                         case 2:
-                            System.out.println(this.controller.getAllAttractionsWithFreePlaces());
+                            Attraction attraction = readInAttraction();
+                            this.controller.addAttraction(attraction, username);
                             break;
                         case 3:
-                            System.out.println("Gib einen Tag an: ");
-                            Weekday day = Weekday.valueOf(in.nextLine());
-                            System.out.println(this.controller.getAttractionsAfterAGivenDay(day));
+                            instructor = this.controller.findInstructorByUsername(username);
+                            System.out.println(instructor.getAttractions());
+                            System.out.println("Gib ID-Attraktion an");
+                            emptyLine = in.nextLine();
+                            idAttraction = in.nextLine();
+                            successful = this.controller.deleteAttraction(username, idAttraction);
+                            if (successful)
+                                System.out.println("Attraktion ist abgesagt");
+                            else
+                                System.out.println("Prozess fehlgeschlafen");
                             break;
                         case 4:
-                            System.out.println(this.controller.getAttractionsSortedByTitle());
-                            System.out.println("Gib eine Attraktion ID an: ");
-                            idAttraction = in.nextLine();
-                            successful = this.controller.signUpForAttraction(idGuest, idAttraction, LocalDate.now());
-                            if (successful)
-                                System.out.println("Anmeldung erfolgreich!\n");
-                            else
-                                System.out.println("Anmeldung nicht möglich!\n");
+                            System.out.println("Summe: " + this.controller.getSumFromGuests(username));
                             break;
                         case 5:
-                            System.out.println(this.controller.getAttractionsOfGuest(idGuest));
-                            break;
-                        case 6:
-                            System.out.println(this.controller.getFinalSumOfGuest(idGuest));
-                            break;
-                        case 7:
                             break;
                         default:
                             System.out.println("So eine Option exisitiert nicht!\n");
                     }
-                    showMenuGuest();
+                    showMenuInstructor();
                     choiceMenu = in.nextInt();
                 }
             }
-            else {
-                showMenuManager();
+            else if (choice == 2) {
+                    successful = false;
+                    while (!successful) {
+                        showMenuRegistration();
+                        choiceMenu = in.nextInt();
+                        switch (choiceMenu) {
+                            case 1:
+                                // registration
+                                Guest guest = readInGuest();
+                                username = guest.getID();
+                                successful = this.controller.addGuest(guest);
+                                if (successful) {
+                                    System.out.println("Registration erfolgreich!\n");
+                                } else
+                                    System.out.println("Registration nicht möglich!\n");
+                                break;
+                            case 2:
+                                // authentification
+                                System.out.print("Gib deinen Username an: ");
+                                emptyLine = in.nextLine();
+                                username = in.nextLine();
+                                System.out.print("Gib dein Passwort an: ");
+                                password = in.nextLine();
+                                Guest g = this.controller.findGuestByUsername(username);
+                                if (g != null) {
+                                    while (!g.matchesPassword(password)) {
+                                        System.out.println("Falsches Passwort, versuche es wieder: ");
+                                        password = in.nextLine();
+                                    }
+                                    successful = true;
+                                    System.out.println("Das Passwort passt!");
+                                } else
+                                    System.out.println("Es gibt keine Benutzer mit diesem Username");
+                                break;
+                            default:
+                                System.out.println("Es gibt so eine Option nicht");
+                                break;
+                        }
+                    }
+                    showMenuGuest();
+                    choiceMenu = in.nextInt();
+                    while (choiceMenu != 7) {
+                        switch (choiceMenu) {
+                            case 1:
+                                System.out.println(this.controller.getAttractionsSortedByTitle());
+                                break;
+                            case 2:
+                                System.out.println(this.controller.getAllAttractionsWithFreePlaces());
+                                break;
+                            case 3:
+                                System.out.println("Gib einen Tag an: ");
+                                emptyLine = in.nextLine();
+                                Weekday day = Weekday.valueOf(in.nextLine().toUpperCase());
+                                System.out.println(this.controller.getAttractionsAfterAGivenDay(day));
+                                break;
+                            case 4:
+                                System.out.println(this.controller.getAttractionsSortedByTitle());
+                                System.out.println("Gib eine Attraktion ID an: ");
+                                emptyLine = in.nextLine();
+                                idAttraction = in.nextLine();
+                                successful = this.controller.signUpForAttraction(username, idAttraction);
+                                if (successful)
+                                    System.out.println("Anmeldung erfolgreich!\n");
+                                else
+                                    System.out.println("Anmeldung nicht möglich!\n");
+                                break;
+                            case 5:
+                                System.out.println(this.controller.getAttractionsOfGuest(username));
+                                break;
+                            case 6:
+                                System.out.println(this.controller.getFinalSumOfGuest(username));
+                                break;
+                            case 7:
+                                break;
+                            default:
+                                System.out.println("So eine Option exisitiert nicht!\n");
+                        }
+                        showMenuGuest();
+                        choiceMenu = in.nextInt();
+                    }
+                } else {
+                    showMenuManager();
+                    choiceMenu = in.nextInt();
+                    while (choiceMenu != 7) {
+                        switch (choiceMenu) {
+                            case 1:
+                                System.out.println(this.controller.getAllAttractions());
+                                break;
+                            case 2:
+                                System.out.println(this.controller.getAllInstructors());
+                                break;
+                            case 3:
+                                this.showGuestData(this.controller.getAllGuests());
+                                break;
+                            case 4:
+                                System.out.println(this.controller.getGuestsSortedDescendingBySum());
+                                break;
+                            case 5:
+                                System.out.println(this.controller.getAllAttractions());
+                                System.out.println("Wähle eine Attraktion-ID: ");
+                                emptyLine = in.nextLine();
+                                idAttraction = in.nextLine();
+                                System.out.println("ID: " + idAttraction);
+                                List<Guest> guests = this.controller.getGuestsOfAttraction(idAttraction);
+                                if (guests != null)
+                                    System.out.println(guests);
+                                else
+                                    System.out.println("Es gibt noch keine angemeldete Besuchern");
+                                break;
+                            case 6:
+                                System.out.println(this.controller.getAllAttractions());
+                                System.out.println("Wähle eine Attraktion-ID: ");
+                                emptyLine = in.nextLine();
+                                idAttraction = in.nextLine();
+                                System.out.println("Wähle einen neuen Instruktor: ");
+                                System.out.println(this.controller.getAllInstructors());
+                                System.out.println("Gib ID an: ");
+                                idInstructor = in.nextLine();
+                                successful = this.controller.changeInstructorOfAttraction(idAttraction,idInstructor);
+                                if (successful) {
+                                    System.out.println("Veränderungen gespeichert!\n");
+                                } else
+                                    System.out.println("Prozess fehlgeschlagen\n");
+                                break;
+                            case 7:
+                                break;
+                            default:
+                                System.out.println("Es gibt so eine Option nicht");
+                                break;
+                        }
+                        showMenuManager();
+                        choiceMenu = in.nextInt();
+                    }
+                }
+                System.out.println("Wähle eine Option: ");
+                showMenuIGM();
+                choice = in.nextInt();
             }
-            System.out.println("Wähle eine Option");
-            System.out.println("1. Instruktor");
-            System.out.println("2. Besucher");
-            System.out.println("3. Manager");
-            choice = in.nextInt();
         }
-    }
 
     public Guest readInGuest(){
         Scanner in = new Scanner(System.in);
-        System.out.println("Gib deinen Vorname an");
+        System.out.println("Gib deinen Username an:");
+        String username = in.nextLine();
+        System.out.println("Gib deinen Vorname an:");
         String firstName = in.nextLine();
-        System.out.println("Gib deinen Nachname an");
+        System.out.println("Gib deinen Nachname an:");
         String lastName = in.nextLine();
-        System.out.println("Gib dein Geburtsdatum an");
+        System.out.println("Gib dein Geburtsdatum an:");
         LocalDate birthday = LocalDate.parse(in.nextLine());
-        return new Guest(firstName,lastName,birthday);
+        System.out.println("Gib dein Passwort an:");
+        String password = in.nextLine();
+        return new Guest(username, firstName, lastName, password, birthday);
+    }
+
+    public Instructor readInInstructor() {
+        Scanner in = new Scanner(System.in);
+        System.out.println("Gib deinen Username an:");
+        String username = in.nextLine();
+        System.out.println("Gib deinen Vorname an:");
+        String firstName = in.nextLine();
+        System.out.println("Gib deinen Nachname an:");
+        String lastName = in.nextLine();
+        System.out.println("Gib dein Passwort an:");
+        String password = in.nextLine();
+        return new Instructor(username, firstName, lastName, password);
+    }
+
+        public Attraction readInAttraction(){
+        Scanner in = new Scanner(System.in);
+        System.out.println("Gib mir der Name der Attraktion: \n");
+        String name = in.nextLine();
+        System.out.println("Gib mir die Kapazitaet des Ortes für diese Attraktion: \n");
+        int capacity = in.nextInt();
+        System.out.println("Gib mir den Preis dieser Attraktion: \n");
+        double price = in.nextDouble();
+        System.out.println("Gib mir die Stätte: \n");
+        String empty = in.nextLine();
+        String location = in.nextLine();
+        System.out.println("Gib mir den Tag: \n");
+        Weekday weekday = Weekday.valueOf(in.nextLine().toUpperCase());
+        return  new Attraction(name, capacity, null, price, location, weekday);
+    }
+
+    public void showGuestData(List<Guest> guests){
+        for (Guest g: guests){
+            System.out.println(g.getData());
+        }
+
     }
 }

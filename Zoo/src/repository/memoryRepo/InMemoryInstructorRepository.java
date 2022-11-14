@@ -1,5 +1,6 @@
 package repository.memoryRepo;
 
+import domain.Attraction;
 import domain.Instructor;
 import repository.InstructorRepository;
 
@@ -7,25 +8,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryInstructorRepository implements InstructorRepository {
-    private List<Instructor> allInstructors;
+    private final List<Instructor> allInstructors;
 
-    public InMemoryInstructorRepository(List<Instructor> allInstructors) {
+    public InMemoryInstructorRepository() {
         this.allInstructors = new ArrayList<>();
         this.populateInstructors();
     }
 
     private void populateInstructors(){
-        /*
-        Instructor instructor1 = new Instructor("","","","");
-        Instructor instructor2 = new Instructor("","","","");
-        Instructor instructor3 = new Instructor("","","","");
-        Instructor instructor4 = new Instructor("","","","");
+        Instructor instructor1 = new Instructor("i1","James", "Parker", "123456");
+        Instructor instructor2 = new Instructor("i2","James", "John", "qwerty");
+        Instructor instructor3 = new Instructor("i3", "Lucy", "Misterious", "abc123");
+        Instructor instructor4 = new Instructor("i4", "Katy", "Gal", "123321");
+        Instructor instructor5 = new Instructor("i5","Camila", "Pop", "password1");
+        Instructor instructor6 = new Instructor("i6","Mircea", "Miron", "abcd1234");
 
         this.add(instructor1);
         this.add(instructor2);
         this.add(instructor3);
         this.add(instructor4);
-         */
+        this.add(instructor5);
+        this.add(instructor6);
     }
 
     @Override

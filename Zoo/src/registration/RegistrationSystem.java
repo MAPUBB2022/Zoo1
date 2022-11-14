@@ -8,15 +8,14 @@ import repository.AttractionRepository;
 import repository.GuestRepository;
 import repository.InstructorRepository;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 public class RegistrationSystem {
-    private AttractionRepository attractionRepository;
-    private GuestRepository guestRepository;
-    private InstructorRepository instructorRepository;
+    private final AttractionRepository attractionRepository;
+    private final GuestRepository guestRepository;
+    private final InstructorRepository instructorRepository;
 
     public RegistrationSystem(AttractionRepository attractionRepository, GuestRepository guestRepository, InstructorRepository instructorRepository) {
         this.attractionRepository = attractionRepository;
@@ -28,9 +27,17 @@ public class RegistrationSystem {
         return this.attractionRepository.getAllAttractions();
     }
 
-    public boolean addAttraction(Attraction attraction){
-        attractionRepository.add(attraction);
-        return true;
+    public boolean addAttraction(Attraction attraction, String idInstructor){
+        Instructor instructor = this.findInstructorByUsername(idInstructor);
+        if (instructor != null){
+            attraction.setInstructor(instructor);
+            this.attractionRepository.add(attraction);
+            // attraction must appear at the attraction list of the instructor too
+            instructor.addAttraction(attraction);
+            this.instructorRepository.update(instructor.getID(), instructor);
+            return true;
+        }
+        return false;
     }
 
     public List<Attraction> getAllAttractionsWithFreePlaces(){
@@ -50,12 +57,11 @@ public class RegistrationSystem {
     public List<Attraction> getAttractionsAfterAGivenDay(Weekday weekday){
         List<Attraction> attractionsAfterADay = new ArrayList<>();
         for (Attraction attr: this.attractionRepository.getAllAttractions()){
-            if (attr.day.getNr() > weekday.getNr())
+            if (attr.day.getNr() >= weekday.getNr())
                 attractionsAfterADay.add(attr);
         }
         return attractionsAfterADay;
     }
-
 
     public List<Guest> getGuestsOfAttraction(String idAttraction){
         Attraction attraction = this.attractionRepository.findByID(idAttraction);
@@ -66,9 +72,9 @@ public class RegistrationSystem {
     }
 
     public boolean addGuest(Guest guest){
-        int guestNr = this.guestRepository.getAllGuests().size();
+        int guestsInitialNr = this.guestRepository.getAllGuests().size();
         this.guestRepository.add(guest);
-        return guestNr == this.guestRepository.getAllGuests().size() + 1;
+        return this.guestRepository.getAllGuests().size() == guestsInitialNr + 1;
     }
 
     public List<Guest> getAllGuests() {
@@ -78,7 +84,7 @@ public class RegistrationSystem {
     public List<Attraction> getAttractionsOfGuest(String idGuest){
         Guest guest = this.guestRepository.findByID(idGuest);
         if (guest!=null)
-            return guest.attractions;
+            return guest.getAttractions();
         else
             return null;
     }
@@ -88,31 +94,60 @@ public class RegistrationSystem {
         if (guest!=null)
             return guest.getFinalSum();
         return 0;
-        // throw Exception
     }
 
-    List<Guest> getGuestsSortedDescendingBySum(){
+    public List<Guest> getGuestsSortedDescendingBySum(){
         List<Guest> guests = this.guestRepository.getAllGuests();
         guests.sort(Collections.reverseOrder());
         return guests;
+    }
+
+    public Guest findGuestByUsername(String username){
+        return this.guestRepository.findByID(username);
+    }
+
+    public Instructor findInstructorByUsername(String username){
+        return this.instructorRepository.findByID(username);
+    }
+
+    public boolean addInstructor(Instructor instructor){
+        int instructorsInitialNr = this.instructorRepository.getAllInstructors().size();
+        this.instructorRepository.add(instructor);
+        return this.instructorRepository.getAllInstructors().size() == instructorsInitialNr + 1;
     }
 
     public List<Instructor> getAllInstructors() {
         return this.instructorRepository.getAllInstructors();
     }
 
-    public boolean signUpForAttraction(String idGuest, String idAttraction, LocalDate date){
+    public double getSumFromGuests(String idInstructor){
+        Instructor instructor = this.findInstructorByUsername(idInstructor);
+        return instructor.getFinalSum();
+    }
+    public boolean changeInstructorOfAttraction(String idAttraction, String idNewInstructor) {
+        Attraction attr = this.attractionRepository.findByID(idAttraction);
+        Instructor newInstructor = this.instructorRepository.findByID(idNewInstructor);
+        if (attr != null && newInstructor != null) {
+            Instructor oldInstructor = attr.getInstructor();
+            oldInstructor.removeAttraction(attr);
+            attr.setInstructor(newInstructor);
+            newInstructor.addAttraction(attr);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean signUpForAttraction(String idGuest, String idAttraction){
         Attraction attr = this.attractionRepository.findByID(idAttraction);
         if (attr!= null && attr.getNrOfFreePlaces() > 0)
-        {   // check date too
+        {
             Guest g = this.guestRepository.findByID(idGuest);
-            if (g!=null)
+            // if guest is already signed up -> sign up not possible
+            if (g!=null && !attr.guestList.contains(g))
             {
-                g.attractions.add(attr);
-                g.calculateSum();
-                this.guestRepository.update(idGuest,g);
-                attr.guestList.add(g);
-                this.attractionRepository.update(idAttraction,attr);
+                g.addAttraction(attr);
+                attr.addGuest(g);
+                attr.getInstructor().calculateSum();
                 return true;
             }
         }
@@ -121,14 +156,13 @@ public class RegistrationSystem {
 
     public boolean deleteAttraction (String idInstructor, String idAttraction){
         Attraction attr = this.attractionRepository.findByID(idAttraction);
-        if (attr!=null && attr.instructor.getID().equals(idInstructor)){
+        if (attr!=null && attr.getInstructor().getID().equals(idInstructor)){
             Instructor instructor = this.instructorRepository.findByID(idInstructor);
-            instructor.attractionsOfInstructor.remove(attr);
-            this.instructorRepository.update(idInstructor,instructor);
+            instructor.removeAttraction(attr);
+            this.attractionRepository.delete(idAttraction);
 
             for (Guest guest: this.guestRepository.getAllGuests()){
-                guest.attractions.remove(attr);
-                guest.calculateSum();
+                guest.removeAttraction(attr);
                 this.guestRepository.update(guest.getID(),guest);
             }
             return true;
