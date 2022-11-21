@@ -2,76 +2,81 @@ package repository.memoryRepo;
 
 import domain.Attraction;
 import domain.Guest;
+import repository.AttractionRepository;
 import repository.GuestRepository;
-import repository.memoryRepo.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryGuestRepository implements GuestRepository {
     private List<Guest> allGuests;
+    private final AttractionRepository attractionRepository;
+    private List<Attraction> favourites;
 
-    public InMemoryGuestRepository(List<Guest> allGuests) {
+    public List<Attraction> getFavourites() {
+        return favourites.stream().sorted().toList();
+    }
+
+    public void setFavourites(List<Attraction> favourites) {
+        this.favourites = favourites;
+    }
+
+    public void addToFavourites(Attraction attraction){
+        this.favourites.add(attraction);
+    }
+
+    public void removeFromFavourites(Attraction attraction){
+        this.favourites.remove(attraction);
+    }
+
+    public InMemoryGuestRepository(List<Guest> allGuests, AttractionRepository attractionRepository) throws IOException {
+        this.attractionRepository = attractionRepository;
         this.allGuests = new ArrayList<>();
         this.populateGuests();
     }
 
-    private void populateGuests(){
-        LocalDate g1 = LocalDate.of(2002,2,1);
-        LocalDate g2 = LocalDate.of(1997,2,1);
-        LocalDate g3 = LocalDate.of(1967,3,1);
-        LocalDate g4 = LocalDate.of(2002,4,11);
-        LocalDate g5 = LocalDate.of(1989,8,12);
-        LocalDate g6 = LocalDate.of(2009,2,1);
-        LocalDate g7 = LocalDate.of(2010,7,16);
-        LocalDate g8 = LocalDate.of(2021,11,18);
-        LocalDate g9 = LocalDate.of(2018,3,3);
-        LocalDate g10 = LocalDate.of(2001,5,28);
-        LocalDate g11 = LocalDate.of(2000,3,23);
-        LocalDate g12 = LocalDate.of(1970,12,24);
-        LocalDate g13 = LocalDate.of(1956,8,8);
-        LocalDate g14 = LocalDate.of(1999,7,7);
-        LocalDate g15 = LocalDate.of(1999,11,12);
-        LocalDate g16 = LocalDate.of(1988,2,1);
-        LocalDate g17 = LocalDate.of(1995,3,16);
-        LocalDate g18 = LocalDate.of(1988,9,29);
-        Guest guest1 = new Guest("Kis", "Maria", g1,0.0, null);
-        Guest guest2 = new Guest("Petru", "Ioana", g2, 0.0, null);
-        Guest guest3 = new Guest("Comsa", "Ana", g3, 0.0, null);
-        Guest guest4 = new Guest("Pop", "Otilia", g4, 0.0, null);
-        Guest guest5 = new Guest("Ion", "Ionut", g5, 0.0, null);
-        Guest guest6 = new Guest("Gal", "Timea", g6, 0.0, null);
-        Guest guest7 = new Guest("Gal", "Emese", g7, 0.0, null);
-        Guest guest8 = new Guest("Popa", "Ecaterina", g8, 0.0, null);
-        Guest guest9 = new Guest("Katy", "Perry", g9, 0.0, null);
-        Guest guest10 = new Guest("Selena", "Gomez", g10, 0.0, null);
-        Guest guest11 = new Guest("Justin", "Bieber", g11, 0.0, null);
-        Guest guest12 = new Guest("Céline", "Dion", g12, 0.0, null);
-        Guest guest13 = new Guest("Leonardo", "DiCaprio", g13, 0.0, null);
-        Guest guest14 = new Guest("Julia", "Roberts", g14, 0.0, null);
-        Guest guest15 = new Guest("Tom", "Hanks", g15, 0.0, null);
-        Guest guest16 = new Guest("Mel", "Gibson", g16, 0.0, null);
-        Guest guest17 = new Guest("Jackie", "Chan", g17, 0.0, null);
-        Guest guest18 = new Guest("Terence", "Hill", g18, 0.0, null);
-        this.add(guest1);
-        this.add(guest2);
-        this.add(guest3);
-        this.add(guest4);
-        this.add(guest5);
-        this.add(guest6);
-        this.add(guest7);
-        this.add(guest8);
-        this.add(guest9);
-        this.add(guest10);
-        this.add(guest11);
-        this.add(guest12);
-        this.add(guest13);
-        this.add(guest14);
-        this.add(guest15);
-        this.add(guest16);
-        this.add(guest17);
-        this.add(guest18);
+    private void populateGuests() throws IOException {
+
+        List<Attraction> attractions = attractionRepository.getAllAttractions();
+
+        Attraction attraction1 = attractions.get(0);
+        Attraction attraction2 = attractions.get(1);
+        Attraction attraction3 = attractions.get(2);
+        Attraction attraction4 = attractions.get(3);
+        Attraction attraction5 = attractions.get(4);
+        Attraction attraction6 = attractions.get(5);
+        Attraction attraction7 = attractions.get(6);
+        Attraction attraction8 = attractions.get(7);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/MM/yyyy");
+        Guest g1 = new Guest("popamaria08", "Popa", "Maria", "789DR",
+                LocalDate.parse("16/08/2002", formatter));
+        Guest g2 = new Guest("popaana09", "Popa", "Ana", "XD45",
+                LocalDate.parse("16/08/1999", formatter));
+        Guest g3 = new Guest("ionandrei10", "Ion", "Andrei", "DSX44",
+                LocalDate.parse("01/01/1968", formatter));
+        Guest g4 = new Guest("tamasraul77", "Tamas", "Raul", "YU89KI",
+                LocalDate.parse("01/01/1966", formatter));
+        Guest g5 = new Guest("tamasraul78", "Tamas", "Raul", "OYH789",
+                LocalDate.parse("01/03/2001", formatter));
+        Guest g6 = new Guest("crisanioana45", "Crisan", "Ioana", "G6789",
+                LocalDate.parse("01/03/2010", formatter));
+        Guest g7 = new Guest("crisanioana444", "Crisan", "Ioana", "56789",
+                LocalDate.parse("01/09/2015", formatter));
+        Guest g8 = new Guest("tamasilinca30", "Tamas", "Ilinca", "TS555",
+                LocalDate.parse("09/09/1955", formatter));
+        Guest g9 = new Guest("dragosenigel9", "Dragos", "Enigel", "89766",
+                LocalDate.parse("11/11/2013", formatter));
+        Guest g10 = new Guest("michaeljackson88", "Michael", "Jackson", "MK345567",
+                LocalDate.parse("29/08/1958", formatter));
+        this.add(g1); this.add(g2); this.add(g3); this.add(g4); this.add(g5);
+        this.add(g6); this.add(g7); this.add(g8); this.add(g9); this.add(g10);
+        attraction5.getInstructor().calculateSum();
+        attraction8.getInstructor().calculateSum();
+
     }
 
     @Override
@@ -82,8 +87,8 @@ public class InMemoryGuestRepository implements GuestRepository {
     @Override
     public void add(Guest guest) {
         for (Guest g: this.allGuests){
-            if (g.getID() == guest.getID()){
-                System.out.println("Guest with this ID already exists");
+            if (g.getID().equals(guest.getID())){
+                System.out.println("Besucher mit diesem ID schon existiert\n");
                 return;
             }
         }
