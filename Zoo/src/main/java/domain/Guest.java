@@ -1,22 +1,31 @@
 package domain;
 
+import javax.persistence.*;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
 public class Guest extends Person implements Comparable<Guest>{
-    private final LocalDate birthday;
+    private LocalDate birthday;
+    @ManyToMany(mappedBy = "guestList")
+    List<Attraction>  attractions;
 
     public Guest(String username, String firstName, String lastName, String password, LocalDate birthday, double finalSum, List<Attraction> attractions) {
-        super(username, firstName, lastName, password, attractions, finalSum);
+        super(username, firstName, lastName, password, finalSum);
         this.birthday = birthday;
+        this.attractions = attractions;
     }
 
     public Guest(String username, String firstName, String lastName, String password, LocalDate birthday) {
         super(username, firstName, lastName, password);
         this.birthday = birthday;
+        this.attractions = new ArrayList<Attraction>();
     }
+
+    public Guest(){}
+
     @Override
     public String getData() {
         String attractions_name = "";
@@ -33,6 +42,31 @@ public class Guest extends Person implements Comparable<Guest>{
 
     public Integer getAge() {
         return Period.between(this.birthday, LocalDate.now()).getYears();
+    }
+    public List<Attraction> getAttractions() {
+        return attractions;
+    }
+
+    public void setAttractions(List<Attraction> attractions) {
+        this.attractions = attractions;
+    }
+
+    public void setBirthday(LocalDate birthday) {
+        this.birthday = birthday;
+    }
+
+    public void addAttraction(Attraction attraction){
+        this.attractions.add(attraction);
+        calculateSum();
+    }
+
+    public void removeAttraction(Attraction attraction){
+        this.attractions.remove(attraction);
+        calculateSum();
+    }
+
+    public LocalDate getBirthday() {
+        return birthday;
     }
 
     @Override

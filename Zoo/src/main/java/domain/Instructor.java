@@ -1,17 +1,45 @@
 package domain;
 
+import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Entity
 public class Instructor extends Person{
 
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "instructor_id")
+    private List<Attraction> attractions;
+
     public Instructor(String id, String firstName, String lastName, String password, List<Attraction> attractionsOfInstructor, double sum) {
-        super(id, firstName, lastName, password, attractionsOfInstructor, sum);
+        super(id, firstName, lastName, password, sum);
+        this.attractions = attractionsOfInstructor;
         calculateSum();
     }
 
     public Instructor(String id, String firstName, String lastName, String password) {
         super(id, firstName, lastName, password);
+        this.attractions = new ArrayList<Attraction>();
+    }
+
+    public Instructor(){}
+
+    public List<Attraction> getAttractions() {
+        return attractions;
+    }
+
+    public void setAttractions(List<Attraction> attractions) {
+        this.attractions = attractions;
+    }
+
+    public void addAttraction(Attraction attraction){
+        this.attractions.add(attraction);
+        calculateSum();
+    }
+
+    public void removeAttraction(Attraction attraction){
+        this.attractions.remove(attraction);
+        calculateSum();
     }
 
     @Override

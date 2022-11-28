@@ -7,6 +7,7 @@ import domain.Weekday;
 import repository.AttractionRepository;
 import repository.GuestRepository;
 import repository.InstructorRepository;
+import utils.NoMoreAvailableTicketsException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -137,19 +138,22 @@ public class RegistrationSystem {
         return false;
     }
 
-    public boolean signUpForAttraction(String idGuest, String idAttraction){
+    public boolean signUpForAttraction(String idGuest, String idAttraction) throws NoMoreAvailableTicketsException{
         Attraction attr = this.attractionRepository.findByID(idAttraction);
-        if (attr!= null && attr.getNrOfFreePlaces() > 0)
+        if (attr!= null)
         {
-            Guest g = this.guestRepository.findByID(idGuest);
-            // if guest is already signed up -> sign up not possible
-            if (g!=null && !attr.guestList.contains(g))
-            {
-                g.addAttraction(attr);
-                attr.addGuest(g);
-                attr.getInstructor().calculateSum();
-                return true;
+            if (attr.getNrOfFreePlaces() > 0){
+                Guest g = this.guestRepository.findByID(idGuest);
+                // if guest is already signed up -> sign up not possible
+                if (g!=null && !attr.guestList.contains(g))
+                {
+                    g.addAttraction(attr);
+                    attr.addGuest(g);
+                    attr.getInstructor().calculateSum();
+                    return true;
+                }
             }
+            else throw new NoMoreAvailableTicketsException("Wir haben nicht mehr Platz");
         }
         return false;
     }

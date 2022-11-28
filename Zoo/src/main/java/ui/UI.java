@@ -5,6 +5,7 @@ import domain.Guest;
 import domain.Instructor;
 import domain.Weekday;
 import registration.RegistrationSystem;
+import utils.NoMoreAvailableTicketsException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -210,7 +211,12 @@ public class UI {
                                 System.out.println("Gib eine Attraktion ID an: ");
                                 emptyLine = in.nextLine();
                                 idAttraction = in.nextLine();
-                                successful = this.controller.signUpForAttraction(username, idAttraction);
+                                try {
+                                    successful = this.controller.signUpForAttraction(username, idAttraction);
+                                } catch (NoMoreAvailableTicketsException e){
+                                    System.out.println("Keine Plätze mehr");
+                                    successful = false;
+                                }
                                 if (successful)
                                     System.out.println("Anmeldung erfolgreich!\n");
                                 else
