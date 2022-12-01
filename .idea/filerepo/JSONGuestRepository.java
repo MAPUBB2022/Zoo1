@@ -1,9 +1,12 @@
 package repository.filerepo;
+import com.fasterxml.jackson.core.exc.StreamWriteException;
+import com.fasterxml.jackson.databind.*;
 import domain.*;
 
 import repository.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -11,16 +14,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class FileGuestRepository implements GuestRepository {
+public class JSONGuestRepository implements GuestRepository {
 
     private String filepath;
-    private List<Guest> allGuests;
     private final AttractionRepository attractionRepository;
 
-    public FileGuestRepository(String filepath, AttractionRepository attractionRepository) {
+    public JSONGuestRepository(String filepath, AttractionRepository attractionRepository) {
         this.filepath = filepath;
         this.attractionRepository = attractionRepository;
-        this.allGuests = new ArrayList<>();
         this.populateGuests();
     }
 
@@ -65,6 +66,9 @@ public class FileGuestRepository implements GuestRepository {
 
         attraction5.addGuest(guest1); attraction5.addGuest(guest2); attraction5.addGuest(guest3); attraction5.addGuest(guest4);
 
+        List<Guest> guests = Arrays.asList(guest1,guest2, guest3, guest4, guest5, guest6, guest7, guest8, guest9,
+                guest10, guest11, guest12, guest13, guest14, guest15, guest16, guest17, guest18);
+
         this.add(guest1); this.add(guest2); this.add(guest3); this.add(guest4); this.add(guest5);
         this.add(guest6); this.add(guest7); this.add(guest8); this.add(guest9); this.add(guest10);
         this.add(guest11); this.add(guest12); this.add(guest13); this.add(guest14); this.add(guest15);
@@ -73,71 +77,41 @@ public class FileGuestRepository implements GuestRepository {
         attraction5.getInstructor().calculateSum();
         attraction8.getInstructor().calculateSum();
 
-        File file = new File(this.filepath);
-
+        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream(file);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(this.allGuests);
-            objectOutputStream.close();
-            fileOutputStream.close();
+            for(Guest guest: guests) {
+                mapper.writeValue(Paths.get(filepath).toFile(), guest);
+            }
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
     }
-
     @Override
     public List<Guest> getAllGuests(){
-        List<Guest> guests  = new ArrayList<>();
-        File file = new File(this.filepath);
-        FileInputStream fileInputStream = null;
-        try {
-            fileInputStream = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
 
-        boolean x = true;
-        while(x) {
-            try (ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);) {
-                Guest guest = (Guest) objectInputStream.readObject();
-                if (guest != null) {
-                    guests.add(guest);
-                } else {
-                    x = false;
-                }
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+        List<Guest> guests = new ArrayList<>();
+
+        try {    // create object mapper instance
+            ObjectMapper mapper = new ObjectMapper();
+            guests = Arrays.asList(mapper.readValue(Paths.get(filepath).toFile(),Guest[].class));
+        }
+        catch(Exception e){
+            e.printStackTrace();
         }
         return guests;
     }
 
     @Override
     public void delete(String username) {
-        File file = new File(this.filepath);
-        List<Guest> guests = new ArrayList<>();
-        guests = getAllGuests();
-        int idx;
         try {
-            for(Guest guest: this.getAllGuests()){
-                if (guest.getID().equals(username)){
-                    idx = this.getAllGuests().indexOf(guest);
-                    guests.remove(idx);
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(new File(filepath));
+            Iterator<JsonNode> nodes = jsonNode.elements();
+            while (nodes.hasNext()) {
+                if (nodes.next().get("username").textValue().equals(username)) {
+                    nodes.remove();
                 }
             }
-            file.delete();   // file loeschen
-
-            // die Daten ohne geloschtes Element zuruckschreiben
-            File file2 = new File(this.filepath);
-            FileOutputStream fileOutputStream = new FileOutputStream(file2);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(guests);
-            objectOutputStream.close();
-            fileOutputStream.close();
-            this.allGuests = guests;
         }
         catch(Exception e){
             e.printStackTrace();
@@ -145,13 +119,16 @@ public class FileGuestRepository implements GuestRepository {
     }
     @Override
     public Guest findByID(String id) {
+        ObjectMapper mapper = new ObjectMapper();
         try {
-            for (Guest guest : this.allGuests) {
-                if (guest.getID().equals(id)) {
-                    return guest;
+            List<Guest> guests = Arrays.asList( mapper.readValue(new File(filepath), Guest[].class) );
+
+            for (Guest g: guests) {
+                if(g.getID().equals(id)){
+                    return g;
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return null;
@@ -159,216 +136,17 @@ public class FileGuestRepository implements GuestRepository {
 
     @Override
     public void update(Guest guest, String id) {
-        boolean found = false;
-        File file = new File(this.filepath);
         try{
-            //String inputID = "{\"ID\": " + ID + " }";
-            Guest guest1 = this.findByID(id);
-            int position = this.allGuests.indexOf(guest1);
-            this.allGuests.set(position,guest);
-
-            file.delete();   // file loeschen
-
-            File file2 = new File(this.filepath);
-            FileOutputStream fileOutputStream = new FileOutputStream(file2);
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
-            objectOutputStream.writeObject(this.allGuests);
-            objectOutputStream.close();
-            fileOutputStream.close();
-
+            // create object mapper instance
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectReader objectReader = objectMapper.readerForUpdating(findByID(id)).readValue(guest.toString());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void add(Guest guest) {
-        File file =  new File(this.filepath);
-        try {
-            FileWriter fileWriter = new FileWriter(file,true);
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.write(String.valueOf(guest));
-            bufferedWriter.close();
-            fileWriter.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-
-
-
-// JSON
-
-//package repository.filerepo;
-//import com.fasterxml.jackson.core.exc.StreamWriteException;
-//import com.fasterxml.jackson.databind.*;
-//import domain.*;
-//
-//import repository.*;
-//
-//import java.io.File;
-//import java.io.IOException;
-//import java.nio.file.Paths;
-//import java.time.LocalDate;
-//import java.time.format.DateTimeFormatter;
-//import java.util.ArrayList;
-//import java.util.Arrays;
-//import java.util.Iterator;
-//import java.util.List;
-//
-//public class JSONGuestRepository implements GuestRepository {
-//
-//    private String filepath;
-//
-//    public JSONGuestRepository(String filepath) {
-//        this.filepath = filepath;
-//        this.populateGuests();
-//    }
-//
-//    public void populateGuests(){
-//
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/MM/yyyy");
-//        Guest g1 = new Guest("popamaria08", "Popa", "Maria", "789DR",
-//                LocalDate.parse("16/08/2002", formatter));
-//        Guest g2 = new Guest("popaana09", "Popa", "Ana", "XD45",
-//                LocalDate.parse("16/08/1999", formatter));
-//        Guest g3 = new Guest("ionandrei10", "Ion", "Andrei", "DSX44",
-//                LocalDate.parse("01/01/1968", formatter));
-//        Guest g4 = new Guest("tamasraul77", "Tamas", "Raul", "YU89KI",
-//                LocalDate.parse("01/01/1966", formatter));
-//        Guest g5 = new Guest("tamasraul78", "Tamas", "Raul", "OYH789",
-//                LocalDate.parse("01/03/2001", formatter));
-//        Guest g6 = new Guest("crisanioana45", "Crisan", "Ioana", "G6789",
-//                LocalDate.parse("01/03/2010", formatter));
-//        Guest g7 = new Guest("crisanioana444", "Crisan", "Ioana", "56789",
-//                LocalDate.parse("01/09/2015", formatter));
-//        Guest g8 = new Guest("tamasilinca30", "Tamas", "Ilinca", "TS555",
-//                LocalDate.parse("09/09/1955", formatter));
-//        Guest g9 = new Guest("dragosenigel9", "Dragos", "Enigel", "89766",
-//                LocalDate.parse("11/11/2013", formatter));
-//        Guest g10 = new Guest("michaeljackson88", "Michael", "Jackson", "MK345567",
-//                LocalDate.parse("29/08/1958", formatter));
-//        this.add(g1);
-//        this.add(g2);
-//        this.add(g3);
-//        this.add(g4);
-//        this.add(g5);
-//        this.add(g6);
-//        this.add(g7);
-//        this.add(g8);
-//        this.add(g9);
-//        this.add(g10);
-//
-//        List<Guest> guestList1 = new ArrayList<Guest>();
-//        guestList1.add(g1);
-//        guestList1.add(g5);
-//        guestList1.add(g6);
-//        guestList1.add(g8);
-//        List<Guest> guestList2 = new ArrayList<Guest>();
-//        guestList2.add(g1);
-//        guestList2.add(g2);
-//        guestList2.add(g3);
-//        guestList2.add(g4);
-//        List<Guest> guestList3 = new ArrayList<Guest>();
-//        guestList3.add(g10);
-//        guestList3.add(g9);
-//        List<Guest> guestList4 = new ArrayList<Guest>();
-//        guestList4.add(g5);
-//        guestList4.add(g6);
-//        guestList4.add(g7);
-//        List<Guest> guestList5 = new ArrayList<Guest>();
-//        guestList5.add(g1);
-//        guestList5.add(g10);
-//        guestList5.add(g6);
-//        List<Guest> guestList6 = new ArrayList<Guest>();
-//        guestList6.add(g1);
-//        guestList6.add(g2);
-//        guestList6.add(g3);
-//        guestList6.add(g4);
-//        guestList6.add(g5);
-//        guestList6.add(g6);
-//        guestList6.add(g7);
-//        List<Guest> guestList7 = new ArrayList<Guest>();
-//        guestList7.add(g4);
-//        guestList7.add(g5);
-//        guestList7.add(g6);
-//        guestList7.add(g7);
-//        guestList7.add(g8);
-//        guestList7.add(g9);
-//        guestList7.add(g10);
-//
-//        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
-//        try {
-//            for(Guest g: this.getAllGuests()) {
-//                mapper.writeValue(Paths.get(filepath).toFile(), g);
-//            }
-//        } catch (IOException e) {
-//            System.out.println(e.getMessage());
-//        }
-//    }
-//
-//    @Override
-//    public List<Guest> getAllGuests(){
-//
-//        List<Guest> guests = new ArrayList<>();
-//
-//        try {    // create object mapper instance
-//            ObjectMapper mapper = new ObjectMapper();
-//            guests = Arrays.asList(mapper.readValue(Paths.get(filepath).toFile(),Guest[].class));
-//        }
-//        catch(Exception e){
-//            e.printStackTrace();
-//        }
-//        return guests;
-//    }
-//
-//    @Override
-//    public void delete(String username) {
-//        try {
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            JsonNode jsonNode = objectMapper.readTree(new File(filepath));
-//            Iterator<JsonNode> nodes = jsonNode.elements();
-//            while (nodes.hasNext()) {
-//                if (nodes.next().get("username").textValue().equals(username)) {
-//                    nodes.remove();
-//                }
-//            }
-//        }
-//        catch(Exception e){
-//            e.printStackTrace();
-//        }
-//    }
-//    @Override
-//    public Guest findByID(String id) {
-//        ObjectMapper mapper = new ObjectMapper();
-//        try {
-//            List<Guest> guests = Arrays.asList( mapper.readValue(new File(filepath), Guest[].class) );
-//
-//            for (Guest g: guests) {
-//                if(g.getID().equals(id)){
-//                    return g;
-//                }
-//            }
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//        return null;
-//    }
-//
-//    @Override
-//    public void update(Guest guest, String id) {
-//        try{
-//            String inputID = "{\"username\": " + id + " }";
-//            ObjectMapper objectMapper = new ObjectMapper();
-//            ObjectReader objectReader = objectMapper.readerForUpdating(guest);
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-//
-//    @Override
-//    public void add(Guest guest) {
+    public void add(Guest guest) { // ?
 //        List<Guest> guestList = new ArrayList<>();
 //        try{
 //            guestList = this.getAllGuests();
@@ -388,5 +166,5 @@ public class FileGuestRepository implements GuestRepository {
 //        } catch (IOException e) {
 //            throw new RuntimeException(e);
 //        }
-//    }
-//}
+    }
+}
