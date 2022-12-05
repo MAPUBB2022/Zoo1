@@ -6,6 +6,7 @@ import domain.Instructor;
 import domain.Weekday;
 import registration.RegistrationSystem;
 import utils.NoMoreAvailableTicketsException;
+import utils.NoSuchDataException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -33,7 +34,9 @@ public class UI {
                 4. Für eine Attraktion anmelden
                 5. Attraktionen, für denen Sie angemeldet sind
                 6. Zeige die bezahlende Endsumme
-                7. Exit
+                7. Zeige Attraktionen nach Preis sortiert
+                8. Zeige Attraktionen mit einem kleinern Preis als ein gegebener Wert
+                9. Exit
                 """);
     }
 
@@ -42,7 +45,7 @@ public class UI {
                 1. Zeige gehältende Attraktionen
                 2. Neue Attraktion einfügen
                 3. Attraktion absagen
-                4. Zeige Summe von Besuchern
+                4. Zeige Summe von Besucher
                 5. Exit
                 """);
     }
@@ -51,11 +54,14 @@ public class UI {
         System.out.println("""
                 1. Zeige alle Attraktionen
                 2. Zeige alle Instruktoren
-                3. Zeige alle Besuchern
-                4. Zeige alle Besuchern absteigend sortiert nach Endsumme
-                5. Zeige Besuchern einer Attraktion
+                3. Zeige alle Besucher
+                4. Zeige alle Besucher absteigend sortiert nach der bezahlten Gesamtsumme
+                5. Zeige Besucher einer Attraktion
                 6. neuen Instruktor für eine Attraktion auswählen
-                7. Exit
+                7. Attraktionen nach BesucherAnzahl sortiert
+                8. Zeige Instruktoren mit höherem Einkommen als der Durchschnitt
+                9. Zeige durschnittliche Einkommen der Instruktoren
+                10. Exit
                 """);
     }
 
@@ -74,6 +80,7 @@ public class UI {
         Scanner in = new Scanner(System.in);
         int choice = in.nextInt(), choiceMenu = 0;
         boolean successful;
+        double value;
         String idGuest = null, idAttraction = null, idInstructor, emptyLine, username = null, password;
         while (choice == 1 || choice == 2 || choice == 3) {
             if (choice == 1) {
@@ -192,13 +199,17 @@ public class UI {
                     }
                     showMenuGuest();
                     choiceMenu = in.nextInt();
-                    while (choiceMenu != 7) {
+                    while (choiceMenu != 9) {
                         switch (choiceMenu) {
                             case 1:
                                 System.out.println(this.controller.getAttractionsSortedByTitle());
                                 break;
                             case 2:
-                                System.out.println(this.controller.getAllAttractionsWithFreePlaces());
+                                try{
+                                    System.out.println(this.controller.getAllAttractionsWithFreePlaces());
+                                }catch (NoSuchDataException e){
+                                    System.out.println("Leider wir haben keine Attraktionen mehr verfügbar");
+                                }
                                 break;
                             case 3:
                                 System.out.println("Gib einen Tag an: ");
@@ -229,6 +240,18 @@ public class UI {
                                 System.out.println(this.controller.getFinalSumOfGuest(username));
                                 break;
                             case 7:
+                                System.out.println(this.controller.getAttractionsSortedByPriceAscending());
+                            case 8:
+                                System.out.println("Gib den maximum Preis: ");
+                                emptyLine = in.nextLine();
+                                value = in.nextDouble();
+                                try{
+                                System.out.println(this.controller.filterAttractionsByAGivenValue(value));}
+                                catch (NoSuchDataException e){
+                                    System.out.println("Wir haben keine Attraktionen mit der eingegebene Bedingung");
+                                }
+                                break;
+                            case 9:
                                 break;
                             default:
                                 System.out.println("So eine Option exisitiert nicht!\n");
@@ -239,7 +262,7 @@ public class UI {
                 } else {
                     showMenuManager();
                     choiceMenu = in.nextInt();
-                    while (choiceMenu != 7) {
+                    while (choiceMenu != 10) {
                         switch (choiceMenu) {
                             case 1:
                                 System.out.println(this.controller.getAllAttractions());
@@ -281,6 +304,15 @@ public class UI {
                                     System.out.println("Prozess fehlgeschlagen\n");
                                 break;
                             case 7:
+                                System.out.println(this.controller.getAttractionsSortedByGuestAscending());
+                                break;
+                            case 8:
+                                System.out.println(this.controller.filterInstructorsWithHigherSalaryThanAverage());
+                                break;
+                            case 9:
+                                System.out.println(this.controller.getAverageSalaryOfInstructors());
+                                break;
+                            case 10:
                                 break;
                             default:
                                 System.out.println("Es gibt so eine Option nicht");

@@ -12,6 +12,7 @@ import repository.memoryRepo.InMemoryAttractionRepository;
 import repository.memoryRepo.InMemoryGuestRepository;
 import repository.memoryRepo.InMemoryInstructorRepository;
 import utils.NoMoreAvailableTicketsException;
+import utils.NoSuchDataException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -43,27 +44,48 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testAddAttraction(){
+    void testSuccessfulAddAttraction() {
         // test with existing instructor id
         Attraction attraction1 = new Attraction("Sea lion show", 50, null, 120.4, "Pool1", SUNDAY);
         assertTrue(controller.addAttraction(attraction1, "i2"));
-        // test with non-existent instructor id
-        Attraction attraction2 = new Attraction("Orca show", 50, null, 100.10, "Pool1", MONDAY);
-        assertFalse(controller.addAttraction(attraction2, "i15"));
+
         // add attraction after add new instructor
+        Attraction attraction2 = new Attraction("Orca show", 50, null, 100.10, "Pool1", MONDAY);
         Instructor instructor = new Instructor("i10","Samantha", "Thompson", "passwordABC");
         controller.addInstructor(instructor);
         assertTrue(controller.addAttraction(attraction2, "i10"));
     }
 
     @Test
-    void testGetAllAttractionsWithFreePlaces(){
-        assertEquals(controller.getAllAttractionsWithFreePlaces().size(), 7);
+    void testUnSuccessfulAddAttraction() {
+        // test with non-existent instructor id
+        Attraction attraction1 = new Attraction("Orca show", 50, null, 100.10, "Pool1", MONDAY);
+        assertFalse(controller.addAttraction(attraction1, "i15"));
+
+        // add the same attraction twice
+        Attraction attraction2 = controller.getAllAttractions().get(1);
+        assertFalse(controller.addAttraction(attraction2, "i2"));
+        assertFalse(controller.addAttraction(attraction2, "i3"));
     }
 
     @Test
-    void testGetAttractionsSortedByTitle(){
+    void testGetAllAttractionsWithFreePlaces() throws NoSuchDataException {
+        assertEquals(controller.getAllAttractionsWithFreePlaces().size(), 7);
+        // attraction with no more free places is not included
+        Attraction attractionWithNoMorePlaces = controller.getAttractionsSortedByTitle().get(3);
+        assertEquals(attractionWithNoMorePlaces.getNrOfFreePlaces(),0);
+        assertFalse(controller.getAllAttractionsWithFreePlaces().contains(attractionWithNoMorePlaces));
+
+        // attraction with more free places is included
+        Attraction attractionWithFreePlaces = controller.getAttractionsSortedByTitle().get(2);
+        assertNotEquals(attractionWithFreePlaces.getNrOfFreePlaces(),0);
+        assertTrue(controller.getAllAttractionsWithFreePlaces().contains(attractionWithFreePlaces));
+    }
+
+    @Test
+    void testGetAttractionsSortedByTitle() {
         List<Attraction> sortedAttractions = controller.getAttractionsSortedByTitle();
+        assertEquals(sortedAttractions.size(),8);
         assertEquals(sortedAttractions.get(0).name, "Angry Panda");
         assertEquals(sortedAttractions.get(7).name, "Zoo time");
     }
@@ -93,34 +115,49 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testAddGuest(){
+    void testSuccessfulAddGuest() {
+        // add a new guest with unique username
+        Guest guest1 = new Guest("ioana.petru2","Ioana", "Petru",  "123abc", LocalDate.of(1978,2,2));
+        assertTrue(controller.addGuest(guest1));
+
+        // add a new guest with same attributes as existing one (apart from username)
+        Guest guest2 = new Guest("pop.otilia","Otilia", "Pop", "animals", LocalDate.of(2002,4,11));
+        assertTrue(controller.addGuest(guest2));
+    }
+
+    @Test
+    void testUnSuccessfulAddGuest() {
         // add a new guest with existing username -> not possible
         Guest guest1 = new Guest("ioana.petru","Ioana", "Petru",  "123abc", LocalDate.of(1978,2,2));
         assertFalse(controller.addGuest(guest1));
-        // add a new guest with unique username
-        Guest guest2 = new Guest("ioana.petru2","Ioana", "Petru",  "123abc", LocalDate.of(1978,2,2));
-        assertTrue(controller.addGuest(guest2));
-        // add a new guest with same attributes as existing one (apart from username)
-        Guest guest3 = new Guest("pop.otilia","Otilia", "Pop", "animals", LocalDate.of(2002,4,11));
-        assertTrue(controller.addGuest(guest3));
+
         // add a guest twice -> not possible
-        assertFalse(controller.addGuest(guest3));
+        Guest guest2 = controller.findGuestByUsername("ioana.petru");
+        assertNotNull(guest2);
+        assertFalse(controller.addGuest(guest2));
     }
 
     @Test
-    void testAddInstructor(){
+    void testSuccessfulAddInstructor() {
         // add instructor with unique id
         Instructor instructor1 = new Instructor("i10","Samantha", "Thompson", "passwordABC");
         assertTrue(controller.addInstructor(instructor1));
-        // add instructor twice -> not possible
-        assertFalse(controller.addInstructor(instructor1));
-        // add instructor with existing id -> not possible
-        Instructor instructor2 = new Instructor("i4","John", "Simpson", "1234");
-        assertFalse(controller.addInstructor(instructor2));
     }
 
     @Test
-    void testGetAllGuests(){
+    void testUnSuccessfulAddInstructor() {
+        // add instructor with existing id -> not possible
+        Instructor instructor2 = new Instructor("i4","John", "Simpson", "1234");
+        assertFalse(controller.addInstructor(instructor2));
+
+        // add instructor twice -> not possible
+        Instructor instructor1 = controller.findInstructorByUsername("i3");
+        assertNotNull(instructor1);
+        assertFalse(controller.addInstructor(instructor1));
+    }
+
+    @Test
+    void testGetAllGuests() {
         List<Guest> guests = this.controller.getAllGuests();
         assertEquals(guests.size(), 18);
         assertEquals(guests.get(0).getID(), "maria01");
@@ -128,7 +165,8 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testGetAttractionsOfGuest(){
+    void testGetAttractionsOfGuest() {
+        // test with a guest who signed up for 2 attractions
         List<Attraction> guestAttractions = controller.getAttractionsOfGuest("maria01");
         assertEquals(guestAttractions.size(), 2);
 
@@ -144,31 +182,45 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testGetFinalSumOfGuest()throws NoMoreAvailableTicketsException{
+    void testGetFinalSumOfGuest() throws NoMoreAvailableTicketsException{
         // under 18 -> ticket with discount
         assertEquals(this.controller.getFinalSumOfGuest("katy99"),150.435);
         // above 60 -> ticket with discount
         assertEquals(this.controller.getFinalSumOfGuest("leo_dicaprio"),240.696, 0.1);
 
         assertEquals(this.controller.getFinalSumOfGuest("maria01"),550.87);
+        Attraction attraction = this.controller.getAllAttractions().get(0);
         String idAttraction = this.controller.getAllAttractions().get(0).getID();
+        Instructor instructor = attraction.getInstructor();
+        double sumInstructor = instructor.getFinalSum();
+        assertEquals(sumInstructor,0);
+        assertEquals(attraction.getNrOfGuests(),0);
+
         // sign up for attraction -> sum increases
         assertTrue(this.controller.signUpForAttraction("maria01", idAttraction));
         assertEquals(this.controller.getFinalSumOfGuest("maria01"),731.86);
-        // attraction deleted -> sum increases
+        // instructor gets more money
+        assertEquals(instructor.getFinalSum(), sumInstructor + attraction.price);
+
+        // attraction deleted -> sum increases (at guest and instructor too)
         this.controller.deleteAttraction("i1",idAttraction);
         assertEquals(this.controller.getFinalSumOfGuest("maria01"),550.87);
+        assertEquals(instructor.getFinalSum(), sumInstructor);
     }
 
     @Test
-    void testGetSumFromGuests(){
+    void testGetSumFromGuests() {
+        // guest who did not sign up for attractions
         assertEquals(this.controller.getSumFromGuests("i2"),0);
+        // guest who is going to attend more attractions
         assertEquals(this.controller.getSumFromGuests("i6"),3008.7);
     }
 
     @Test
-    void testGetGuestsSortedDescendingBySum(){
+    void testGetGuestsSortedDescendingBySum() {
         List<Guest> guests = this.controller.getGuestsSortedDescendingBySum();
+        assertEquals(guests.size(),18);
+        System.out.println(guests.get(0).getFinalSum());
         assertEquals(guests.get(0).getFinalSum(), 550.87);
         assertEquals(guests.get(7).getFinalSum(),250);
         assertEquals(guests.get(17).getFinalSum(), 0.0);
@@ -200,6 +252,10 @@ class RegistrationSystemTest{
         assertEquals(guest, controller.getAllGuests().get(0));
         assertEquals(guest.getName(), "Maria Kis");
         assertEquals(guest.getPassword(), "KM01");
+
+        // find guest with non-existent id
+        guest = this.controller.findGuestByUsername("janet_j");
+        assertNull(guest);
     }
 
     @Test
@@ -266,7 +322,7 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testDeleteAttraction(){
+    void testDeleteAttraction() {
         assertEquals(this.controller.getAllAttractions().size(), 8);
         Attraction attraction = this.controller.getAttractionsSortedByTitle().get(3);
 
@@ -284,5 +340,56 @@ class RegistrationSystemTest{
         }
         assertFalse(instructor.getAttractions().contains(attraction));
         assertEquals(this.controller.getAllAttractions().size(), 7);
+    }
+
+    @Test
+    void testGetAttractionsSortedByPriceAscending() {
+        List<Attraction> sortedAttractionsByPrice = controller.getAttractionsSortedByPriceAscending();
+        assertEquals(sortedAttractionsByPrice.get(0).price,55.00);
+        assertEquals(sortedAttractionsByPrice.get(7).price,300.87);
+    }
+
+    @Test
+    void testGetAttractionsSortedByGuestAscending() {
+        List<Attraction> sortedAttractionsByNrOfGuests = controller.getAttractionsSortedByGuestAscending();
+        assertEquals(sortedAttractionsByNrOfGuests.get(7).getNrOfGuests(), 10);
+        assertEquals(sortedAttractionsByNrOfGuests.get(0).getNrOfGuests(), 0);
+    }
+
+    @Test
+    void testFilterAttractionsByAGivenValue() throws NoSuchDataException {
+        List<Attraction> sortedAttractions = controller.filterAttractionsByAGivenValue(99.99);
+        assertEquals(sortedAttractions.size(),4);
+    }
+
+    @Test
+    void testNotFoundDataFilterAttractionsByAGivenValue(){
+        // no matching attractions
+        Throwable exception = assertThrows(NoSuchDataException.class, () -> this.controller.filterAttractionsByAGivenValue(10));
+        assertEquals(exception.getMessage(), "Keine Attraktionen gefunden");
+    }
+
+    @Test
+    void testGetAverageSalaryOfInstructors() {
+        assertEquals(controller.getAverageSalaryOfInstructors(),668.116,0.1);
+    }
+
+    @Test
+    void testFilterInstructorsWithHigherSalaryThanAverage() {
+        List<Instructor> instructorsWithHighSalary = controller.filterInstructorsWithHigherSalaryThanAverage();
+        assertEquals(instructorsWithHighSalary.size(),2);
+
+        // both instructors have higher salary than the average (668.116)
+        Instructor instructor = instructorsWithHighSalary.get(0);
+        assertEquals(instructor.getFinalSum(), 1000);
+
+        instructor = instructorsWithHighSalary.get(1);
+        assertEquals(instructor.getFinalSum(), 3008.7);
+
+        // any other instructor have lower salary
+        instructor = controller.getAllInstructors().get(2);
+        assertFalse(instructorsWithHighSalary.contains(instructor));
+        assertEquals(instructor.getFinalSum(), 0);
+
     }
 }

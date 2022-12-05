@@ -8,9 +8,11 @@ import repository.AttractionRepository;
 import repository.GuestRepository;
 import repository.InstructorRepository;
 import utils.NoMoreAvailableTicketsException;
+import utils.NoSuchDataException;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class RegistrationSystem {
@@ -30,10 +32,12 @@ public class RegistrationSystem {
 
     public boolean addAttraction(Attraction attraction, String idInstructor){
         Instructor instructor = this.findInstructorByUsername(idInstructor);
-        if (instructor != null){
+        // instructor with the given ID must exist
+        // attraction doesn't appear previously in the list of attractions
+        if (instructor != null && this.attractionRepository.findByID(attraction.getID()) == null){
             attraction.setInstructor(instructor);
             this.attractionRepository.add(attraction);
-            // attraction must appear at the attraction list of the instructor too
+            // attraction must appear at the attractionlist of the instructor too
             instructor.addAttraction(attraction);
             this.instructorRepository.update(instructor.getID(), instructor);
             return true;
@@ -41,11 +45,13 @@ public class RegistrationSystem {
         return false;
     }
 
-    public List<Attraction> getAllAttractionsWithFreePlaces(){
+    public List<Attraction> getAllAttractionsWithFreePlaces() throws NoSuchDataException {
         List<Attraction> attractionsWithFreePlaces = new ArrayList<>();
         for (Attraction attraction: this.attractionRepository.getAllAttractions())
             if (attraction.getCapacity() > attraction.getNrOfGuests())
                 attractionsWithFreePlaces.add(attraction);
+        if (attractionsWithFreePlaces.size() == 0)
+            throw new NoSuchDataException("Keine Attraktionen gefunden");
         return attractionsWithFreePlaces;
     }
 
@@ -64,12 +70,68 @@ public class RegistrationSystem {
         return attractionsAfterADay;
     }
 
+    public List<Attraction> getAttractionsSortedByPriceAscending() {
+        List<Attraction> sortedAttractions = this.attractionRepository.getAllAttractions();
+        Collections.sort(sortedAttractions,
+                (Attraction a1, Attraction a2) -> Double.compare(a1.price, a2.price));
+        /*
+        Collections.sort(sortedAttractions, new Comparator<Attraction>() {
+            @Override
+            public int compare(Attraction a1, Attraction a2) {
+                return Double.compare(a1.price, a2.price);
+            }
+        }); */
+        return sortedAttractions;
+    }
+
+    public List<Attraction> getAttractionsSortedByGuestAscending() {
+        List<Attraction> sortedAttractions = this.attractionRepository.getAllAttractions();
+        Collections.sort(sortedAttractions,
+                (Attraction o1, Attraction o2) -> {return o1.getNrOfGuests() - o2.getNrOfGuests();}
+        );
+        /*
+        Collections.sort(sortedAttractions, new Comparator<Attraction>() {
+            @Override
+            public int compare(Attraction o1, Attraction o2) { return o1.getNrOfGuests() - o2.getNrOfGuests();     }
+        }); */
+        return sortedAttractions;
+    }
+
+    public List<Attraction> filterAttractionsByAGivenValue(double price) throws NoSuchDataException {
+        List<Attraction> attractionsWithFixedPrice = new ArrayList<>();
+        for (Attraction attraction: this.attractionRepository.getAllAttractions())
+            if (attraction.price <=  price)
+                attractionsWithFixedPrice.add(attraction);
+
+        if (attractionsWithFixedPrice.size() == 0)
+            throw new NoSuchDataException("Keine Attraktionen gefunden");
+        return attractionsWithFixedPrice;
+    }
+
     public List<Guest> getGuestsOfAttraction(String idAttraction){
         Attraction attraction = this.attractionRepository.findByID(idAttraction);
         if (attraction != null)
             return attraction.guestList;
         else
             return null;
+    }
+
+    public double getAverageSalaryOfInstructors(){
+        double avgSum = 0;
+        for (Instructor instructor: this.getAllInstructors()){
+            avgSum += instructor.getFinalSum();
+        }
+        avgSum = avgSum / this.getAllInstructors().size();
+        return avgSum;
+    }
+
+    public List<Instructor> filterInstructorsWithHigherSalaryThanAverage(){
+        List<Instructor> instructorsWithHighSalary = new ArrayList<>();
+        double avgSum = this.getAverageSalaryOfInstructors();
+        for (Instructor instructor: this.instructorRepository.getAllInstructors())
+            if(instructor.getFinalSum() > avgSum)
+                instructorsWithHighSalary.add(instructor);
+        return instructorsWithHighSalary;
     }
 
     public boolean addGuest(Guest guest){
@@ -99,7 +161,15 @@ public class RegistrationSystem {
 
     public List<Guest> getGuestsSortedDescendingBySum(){
         List<Guest> guests = this.guestRepository.getAllGuests();
-        guests.sort(Collections.reverseOrder());
+        Collections.sort(guests, new Comparator<Guest>() {
+            @Override
+            public int compare(Guest o1, Guest o2) {
+                if (o1.getFinalSum() < o2.getFinalSum()) return 1;
+                else if (o1.getFinalSum() == o2.getFinalSum()) return 0;
+                else return -1;
+            }
+        });
+        // guests.sort(Collections.reverseOrder());
         return guests;
     }
 
