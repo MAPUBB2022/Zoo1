@@ -1,3 +1,19 @@
+import registration.RegistrationSystem;
+import repository.AttractionRepository;
+import repository.GuestRepository;
+import repository.InstructorRepository;
+import repository.JDBCrepository.JdbcAttractionRepository;
+import repository.JDBCrepository.JdbcGuestRepository;
+import repository.JDBCrepository.JdbcInstructorRepository;
+import repository.memoryRepo.InMemoryAttractionRepository;
+import repository.memoryRepo.InMemoryGuestRepository;
+import repository.memoryRepo.InMemoryInstructorRepository;
+import ui.UI;
+import utils.NoMoreAvailableTicketsException;
+import utils.NoSuchDataException;
+
+import java.io.IOException;
+
 public class Main {
     public static void main(String[] args) throws IOException, NoMoreAvailableTicketsException, NoSuchDataException {
 //        InstructorRepository instructorRepository = new InMemoryInstructorRepository();
@@ -8,12 +24,15 @@ public class Main {
 //        UI ui = new UI(controller);
 //        ui.getUserChoice();
 
-        InstructorRepository instructorRepository = new JSONInstructorRepository("src/main/resources/instructors.json");
-        AttractionRepository attractionRepository = new JSONAttractionRepository("src/main/resources/attractions.json", instructorRepository);
-        GuestRepository guestRepository = new JSONGuestRepository("src/main/resources/guests.json", attractionRepository);
+        JdbcInstructorRepository jdbcInstructorRepository = new JdbcInstructorRepository("default","jdbc:postgresql://localhost:5432/Zoo","postgres","timi3678");
+        JdbcAttractionRepository jdbcAttractionRepository = new JdbcAttractionRepository(jdbcInstructorRepository);
+        GuestRepository jdbcGuestRepository = new JdbcGuestRepository(jdbcAttractionRepository);
 
-        RegistrationSystem controller = new RegistrationSystem(attractionRepository, guestRepository, instructorRepository);
-        UI ui = new UI(controller);
-        ui.getUserChoice();
+        RegistrationSystem jdbcController = new RegistrationSystem(jdbcAttractionRepository, jdbcGuestRepository, jdbcInstructorRepository);
+        UI jdbcUi = new UI(jdbcController);
+        jdbcUi.getUserChoice();
+
     }
 }
+
+
