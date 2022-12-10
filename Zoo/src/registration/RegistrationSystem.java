@@ -274,24 +274,24 @@ public class RegistrationSystem {
     public boolean validateDouble(String input){
         try{
             double result = Double.parseDouble(input);
-            return true;
         }
         catch (NoSuchDataException e){
             e.getMessage();
             System.out.println("Dein Input ist inkorrekt. ");
             return false;
         }
+        return true;
     }
 
     public boolean validateInt(String input){
         try{
             int result = Integer.parseInt(input);
-            return true;
         }
         catch(NoSuchDataException e){
             e.getMessage();
             System.out.println("Dein Input ist inkorrekt. ");
             return false;
         }
+        return true;
     }
 }
