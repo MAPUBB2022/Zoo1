@@ -38,13 +38,16 @@ public class InMemoryInstructorRepository implements InstructorRepository {
 
     @Override
     public void add(Instructor instructor) {
-        for (Instructor instr: this.allInstructors){
-            if (instr.getID().equals(instructor.getID())){
-                System.out.println("Instructor with this ID already exists");
-                return;
+        try{
+            for (Instructor instr: this.allInstructors){
+                if (instr.getID().equals(instructor.getID())){
+                    System.out.println("Es gibt schon eine Instruktor mit dieser ID");
+                    return;
+                }
             }
-        }
-        this.allInstructors.add(instructor);
+            this.allInstructors.add(instructor);
+        }catch (NullPointerException ignored) {}
+
     }
 
     @Override

@@ -76,13 +76,15 @@ public class InMemoryGuestRepository implements GuestRepository {
 
     @Override
     public void add(Guest guest) {
-        for (Guest g: this.allGuests){
-            if (g.getID().equals(guest.getID())){
-                System.out.println("Guest with this username already exists");
-                return;
+        try {
+            for (Guest g: this.allGuests){
+                if (g.getID().equals(guest.getID())){
+                    System.out.println("Ein Besucher mit dieser ID existiert schon");
+                    return;
+                }
             }
-        }
-        this.allGuests.add(guest);
+            this.allGuests.add(guest);
+        } catch (NullPointerException ignored) {}
     }
 
     @Override

@@ -21,6 +21,7 @@ public class UI {
 
     public void showMenuRegistration() {
         System.out.println("""
+                
                 1. Registration
                 2. Schon registriert
                 """);
@@ -28,6 +29,7 @@ public class UI {
 
     public void showMenuGuest(){
         System.out.println("""
+                
                 1. Zeige alle Attraktionen
                 2. Zeige alle verfügbare Attraktionen
                 3. Zeigen Attraktionen nach einem bestimmten Tag
@@ -42,6 +44,7 @@ public class UI {
 
     public void showMenuInstructor(){
         System.out.println("""
+                
                 1. Zeige gehältende Attraktionen
                 2. Neue Attraktion einfügen
                 3. Attraktion absagen
@@ -52,6 +55,7 @@ public class UI {
 
     public void showMenuManager(){
         System.out.println("""
+                
                 1. Zeige alle Attraktionen
                 2. Zeige alle Instruktoren
                 3. Zeige alle Besucher
@@ -68,6 +72,7 @@ public class UI {
     // menu Instructor - Guest - Manager
     public void showMenuIGM(){
         System.out.println("""
+                
                 1. Instruktor
                 2. Besucher
                 3. Manager
@@ -92,10 +97,10 @@ public class UI {
                         case 1:
                             // registration
                             Instructor instructor = readInInstructor();
-                            username = instructor.getID();
                             successful = this.controller.addInstructor(instructor);
                             if (successful) {
                                 System.out.println("Registration erfolgreich!\n");
+                                username = instructor.getID();
                             } else
                                 System.out.println("Registration nicht möglich!\n");
                             break;
@@ -109,13 +114,13 @@ public class UI {
                             Instructor instr = this.controller.findInstructorByUsername(username);
                             if (instr != null) {
                                 while (!instr.matchesPassword(password)) {
-                                    System.out.println("Falsches Passwort, versuche es wieder: ");
+                                    System.out.print("Falsches Passwort, versuche es wieder: ");
                                     password = in.nextLine();
                                 }
                                 successful = true;
                                 System.out.println("Das Passwort passt!");
                             } else
-                                System.out.println("Es gibt keine Instruktor mit diesem Username");
+                                System.out.println("Es gibt keine Instruktor mit diesem Benutzername");
                             break;
                         default:
                             System.out.println("Es gibt so eine Option nicht");
@@ -127,17 +132,19 @@ public class UI {
                 while (choiceMenu != 5) {
                     switch (choiceMenu) {
                         case 1:
-                            Instructor instructor = this.controller.findInstructorByUsername(username);
-                            System.out.println(instructor.getAttractions());
+                            System.out.println(this.controller.getAttractionsOfInstructor(username));
                             break;
                         case 2:
                             Attraction attraction = readInAttraction();
-                            this.controller.addAttraction(attraction, username);
+                            successful = this.controller.addAttraction(attraction, username);
+                            if (successful)
+                                System.out.println("Attraktion eingefügt");
+                            else
+                                System.out.println("Attraktion ist nicht eingefügt");
                             break;
                         case 3:
-                            instructor = this.controller.findInstructorByUsername(username);
-                            System.out.println(instructor.getAttractions());
-                            System.out.println("Gib ID-Attraktion an");
+                            System.out.println(this.controller.getAttractionsOfInstructor(username));
+                            System.out.println("Gib ID-Attraktion an: ");
                             emptyLine = in.nextLine();
                             idAttraction = in.nextLine();
                             successful = this.controller.deleteAttraction(username, idAttraction);
@@ -167,10 +174,10 @@ public class UI {
                             case 1:
                                 // registration
                                 Guest guest = readInGuest();
-                                username = guest.getID();
                                 successful = this.controller.addGuest(guest);
                                 if (successful) {
                                     System.out.println("Registration erfolgreich!\n");
+                                    username = guest.getID();
                                 } else
                                     System.out.println("Registration nicht möglich!\n");
                                 break;
@@ -184,13 +191,13 @@ public class UI {
                                 Guest g = this.controller.findGuestByUsername(username);
                                 if (g != null) {
                                     while (!g.matchesPassword(password)) {
-                                        System.out.println("Falsches Passwort, versuche es wieder: ");
+                                        System.out.print("Falsches Passwort, versuche es wieder: ");
                                         password = in.nextLine();
                                     }
                                     successful = true;
                                     System.out.println("Das Passwort passt!");
                                 } else
-                                    System.out.println("Es gibt keine Benutzer mit diesem Username");
+                                    System.out.println("Es gibt keinen Benutzer mit diesem Username");
                                 break;
                             default:
                                 System.out.println("Es gibt so eine Option nicht");
@@ -205,16 +212,12 @@ public class UI {
                                 System.out.println(this.controller.getAttractionsSortedByTitle());
                                 break;
                             case 2:
-                                try{
-                                    System.out.println(this.controller.getAllAttractionsWithFreePlaces());
-                                }catch (NoSuchDataException e){
-                                    System.out.println("Leider wir haben keine Attraktionen mehr verfügbar");
-                                }
+                                System.out.println(this.controller.getAllAttractionsWithFreePlaces());
                                 break;
                             case 3:
                                 System.out.println("Gib einen Tag an: ");
                                 emptyLine = in.nextLine();
-                                Weekday day = Weekday.valueOf(in.nextLine().toUpperCase());
+                                Weekday day = this.controller.verifiedUserInputWeekday(in.nextLine());
                                 System.out.println(this.controller.getAttractionsAfterAGivenDay(day));
                                 break;
                             case 4:
@@ -222,12 +225,7 @@ public class UI {
                                 System.out.println("Gib eine Attraktion ID an: ");
                                 emptyLine = in.nextLine();
                                 idAttraction = in.nextLine();
-                                try {
-                                    successful = this.controller.signUpForAttraction(username, idAttraction);
-                                } catch (NoMoreAvailableTicketsException e){
-                                    System.out.println("Keine Plätze mehr");
-                                    successful = false;
-                                }
+                                successful = this.controller.signUpForAttraction(username, idAttraction);
                                 if (successful)
                                     System.out.println("Anmeldung erfolgreich!\n");
                                 else
@@ -242,14 +240,10 @@ public class UI {
                             case 7:
                                 System.out.println(this.controller.getAttractionsSortedByPriceAscending());
                             case 8:
-                                System.out.println("Gib den maximum Preis: ");
+                                System.out.print("Gib den maximum Preis: ");
                                 emptyLine = in.nextLine();
-                                value = in.nextDouble();
-                                try{
-                                System.out.println(this.controller.filterAttractionsByAGivenValue(value));}
-                                catch (NoSuchDataException e){
-                                    System.out.println("Wir haben keine Attraktionen mit der eingegebene Bedingung");
-                                }
+                                value = this.controller.verifiedUserInputPrice(in.nextLine());
+                                System.out.println(this.controller.filterAttractionsByAGivenValue(value));
                                 break;
                             case 9:
                                 break;
@@ -328,48 +322,52 @@ public class UI {
             }
         }
 
+
     public Guest readInGuest(){
         Scanner in = new Scanner(System.in);
-        System.out.println("Gib deinen Username an:");
+        System.out.print("Gib deinen Username an: ");
         String username = in.nextLine();
-        System.out.println("Gib deinen Vorname an:");
+        System.out.print("Gib deinen Vorname an: ");
         String firstName = in.nextLine();
-        System.out.println("Gib deinen Nachname an:");
+        System.out.print("Gib deinen Nachname an: ");
         String lastName = in.nextLine();
-        System.out.println("Gib dein Geburtsdatum an:");
-        LocalDate birthday = LocalDate.parse(in.nextLine());
-        System.out.println("Gib dein Passwort an:");
+        System.out.print("Gib dein Geburtsdatum an: ");
+        String birthday = in.nextLine();
+        System.out.print("Gib dein Passwort an: ");
         String password = in.nextLine();
-        return new Guest(username, firstName, lastName, password, birthday);
+        Guest guest = this.controller.verifiedUserInputGuest(username, firstName, lastName, birthday, password);
+        return guest;
     }
 
     public Instructor readInInstructor() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Gib deinen Username an:");
+        System.out.print("Gib deinen Username an: ");
         String username = in.nextLine();
-        System.out.println("Gib deinen Vorname an:");
+        System.out.print("Gib deinen Vorname an: ");
         String firstName = in.nextLine();
-        System.out.println("Gib deinen Nachname an:");
+        System.out.print("Gib deinen Nachname an: ");
         String lastName = in.nextLine();
-        System.out.println("Gib dein Passwort an:");
+        System.out.print("Gib dein Passwort an: ");
         String password = in.nextLine();
-        return new Instructor(username, firstName, lastName, password);
+        boolean correctInput = this.controller.verifyUserInputNameAndPassword(username,firstName,lastName,password);
+        if (correctInput)
+            return new Instructor(username, firstName, lastName, password);
+        return null;
     }
 
-        public Attraction readInAttraction(){
+    public Attraction readInAttraction() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Gib mir der Name der Attraktion: \n");
+        System.out.print("Gib der Name der Attraktion an: ");
         String name = in.nextLine();
-        System.out.println("Gib mir die Kapazitaet des Ortes für diese Attraktion: \n");
-        int capacity = in.nextInt();
-        System.out.println("Gib mir den Preis dieser Attraktion: \n");
-        double price = in.nextDouble();
-        System.out.println("Gib mir die Stätte: \n");
-        String empty = in.nextLine();
+        System.out.print("Gib die Kapazitaet des Ortes für diese Attraktion an: ");
+        String capacity = in.nextLine();
+        System.out.print("Gib den Preis dieser Attraktion an: ");
+        String price = in.nextLine();
+        System.out.print("Gib die Stätte an: ");
         String location = in.nextLine();
-        System.out.println("Gib mir den Tag: \n");
-        Weekday weekday = Weekday.valueOf(in.nextLine().toUpperCase());
-        return  new Attraction(name, capacity, null, price, location, weekday);
+        System.out.print("Gib den Tag an: ");
+        String weekday = in.nextLine();
+        return this.controller.verifiedUserInputAttraction(name, capacity, price, location, weekday);
     }
 
     public void showGuestData(List<Guest> guests){

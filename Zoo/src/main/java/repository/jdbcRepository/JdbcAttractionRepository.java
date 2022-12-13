@@ -78,12 +78,13 @@ public class JdbcAttractionRepository implements AttractionRepository {
     }
 
     @Override
-    public void add(Attraction attraction){
+    public void add(Attraction attraction) {
+        if (this.findByID(attraction.getID()) == null) {
             manager.getTransaction().begin();
             manager.persist(attraction);
             manager.getTransaction().commit();
         }
-
+    }
     @Override
     public void delete(String id){
         Attraction attraction = this.findByID(id);

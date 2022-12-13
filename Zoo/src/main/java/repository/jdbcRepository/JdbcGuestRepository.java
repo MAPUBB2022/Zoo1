@@ -90,11 +90,13 @@ public class JdbcGuestRepository implements GuestRepository {
 
     @Override
     public void add(Guest guest) {
-        if (this.findByID(guest.getID())==null){
-            manager.getTransaction().begin();
-            manager.persist(guest);
-            manager.getTransaction().commit();
-        }
+        try{
+            if (this.findByID(guest.getID())==null){
+                manager.getTransaction().begin();
+                manager.persist(guest);
+                manager.getTransaction().commit();
+            }
+        }catch (NullPointerException ignored){}
     }
 
     @Override

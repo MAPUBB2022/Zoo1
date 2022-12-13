@@ -299,17 +299,16 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testUnSuccesfulsignUpForAttractionWithNoFreePlaces(){
+    void testUnSuccesfulSignUpForAttractionWithNoFreePlaces(){
         // sign up when there are no free places -> not possible
         Attraction attraction2 = this.controller.getAttractionsSortedByTitle().get(3);
         assertEquals(attraction2.getNrOfFreePlaces(), 0);
 
-        Throwable exception = assertThrows(NoMoreAvailableTicketsException.class, () -> this.controller.signUpForAttraction("ioana_maria", attraction2.getID()));
-        assertEquals(exception.getMessage(), "Wir haben nicht mehr Platz");
+        assertFalse(this.controller.signUpForAttraction("ioana_maria", attraction2.getID()));
     }
 
     @Test
-    void testSuccesfulsignUpForAttraction() throws NoMoreAvailableTicketsException{
+    void testSuccesfulSignUpForAttraction() throws NoMoreAvailableTicketsException{
         Attraction attraction = this.controller.getAllAttractions().get(4);
         // successful sign up -> number of free places decreases, sum paid by guests increases
         Guest guest = new Guest("ioana_maria","Ioana", "Maria", "passw123", LocalDate.of(1970,8,10));
@@ -365,8 +364,8 @@ class RegistrationSystemTest{
     @Test
     void testNotFoundDataFilterAttractionsByAGivenValue(){
         // no matching attractions
-        Throwable exception = assertThrows(NoSuchDataException.class, () -> this.controller.filterAttractionsByAGivenValue(10));
-        assertEquals(exception.getMessage(), "Keine Attraktionen gefunden");
+        List<Attraction> attrWithPriceLessThan10 = this.controller.filterAttractionsByAGivenValue(10);
+        assertEquals(attrWithPriceLessThan10.size(),0);
     }
 
     @Test

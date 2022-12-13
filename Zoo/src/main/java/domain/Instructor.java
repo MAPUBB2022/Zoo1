@@ -63,9 +63,9 @@ public class Instructor extends Person{
 
         if (attractions_name.length() > 0)
             attractions_name = attractions_name.substring(0, attractions_name.length() - 2);
-        return  "  ID=" + ID + '\'' +
-                "  firstName=" + firstName + '\'' +
-                "  lastName=" + lastName + '\'' +
+        return  "  ID=" + ID  +
+                "  firstName=" + firstName +
+                "  lastName=" + lastName +
                 "  finalSumFromGuests=" + finalSum +
                 "  hält: " + attractions_name +
                 '\n';

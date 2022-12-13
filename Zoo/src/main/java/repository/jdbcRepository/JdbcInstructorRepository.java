@@ -48,15 +48,16 @@ public class JdbcInstructorRepository implements InstructorRepository {
 
     @Override
     public void add(Instructor instructor) {
-//            try{
-        if (this.findByID(instructor.getID())==null)
-        {
-            manager.getTransaction().begin();
-            manager.persist(instructor);
-            manager.getTransaction().commit();
-        }
-        else System.out.println("Es gibt schone eine Instruktor mit diese ID");
-        }
+        try{
+            if (this.findByID(instructor.getID())==null)
+            {
+                manager.getTransaction().begin();
+                manager.persist(instructor);
+                manager.getTransaction().commit();
+            }
+            else System.out.println("Es gibt schon eine Instruktor mit dieser ID");
+        }catch (NullPointerException ignored) {}
+    }
     @Override
     public void delete(String id) {
         Instructor instructor = this.findByID(id);

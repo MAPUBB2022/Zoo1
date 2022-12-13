@@ -33,7 +33,8 @@ public class Attraction implements Comparable<Attraction>{
         this.location = location;
         this.day = day;
         // create ID
-        this.ID = UUID.randomUUID().toString();
+        // this.ID = UUID.randomUUID().toString();
+        this.ID = this.name.substring(0,1)+this.location.substring(0,1)+ '-' +this.day.toString().substring(0,3);
     }
 
     public Attraction(String name, Integer capacity, Instructor instructor, double price, String location, Weekday day) {
@@ -45,7 +46,8 @@ public class Attraction implements Comparable<Attraction>{
         this.price = price;
         this.location = location;
         this.day = day;
-        this.ID = UUID.randomUUID().toString();
+        //this.ID = UUID.randomUUID().toString();
+        this.ID = this.name.substring(0,1)+this.location.substring(0,1)+ '-' +this.day.toString().substring(0,3);
     }
 
     public Attraction() {}
@@ -83,13 +85,15 @@ public class Attraction implements Comparable<Attraction>{
 
     @Override
     public String toString() {
-        return "   ID=" + ID +
-                "  name=" + name +
-                "  capacity=" + capacity +
-                "  instructor=" + instructor.getData() +
-                "  price=" + price +
-                "  location=" + location +
-                "  day=" + day +
+        return  " ID=" + ID +
+                "  \tname=" + name +
+                "  \tcapacity=" + capacity +
+                "  \tinstructor=" + instructor.getData() +
+                "  \tprice=" + price +
+                "  \tlocation=" + location +
+                "  \tday=" + day +
+                "  \tfree places=" + this.getNrOfFreePlaces() +
+                "  \tsigned up guests=" + this.getNrOfGuests() +
                 '\n';
     }
 }
