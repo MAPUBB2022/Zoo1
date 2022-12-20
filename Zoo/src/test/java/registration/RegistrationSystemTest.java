@@ -3,6 +3,7 @@ package registration;
 import domain.Attraction;
 import domain.Guest;
 import domain.Instructor;
+import domain.Weekday;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import repository.AttractionRepository;
@@ -21,12 +22,18 @@ import java.util.List;
 import static domain.Weekday.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Tests for Controller.
+ */
 class RegistrationSystemTest{
     private InstructorRepository instructorRepository;
     private AttractionRepository attractionRepository;
     private GuestRepository guestRepository;
     private RegistrationSystem controller;
 
+    /**
+     * For the tests inmemory repositories are used.
+     */
     @BeforeEach
     void setUp(){
         this.instructorRepository = new InMemoryInstructorRepository();
@@ -213,7 +220,7 @@ class RegistrationSystemTest{
         // guest who did not sign up for attractions
         assertEquals(this.controller.getSumFromGuests("i2"),0);
         // guest who is going to attend more attractions
-        assertEquals(this.controller.getSumFromGuests("i6"),3008.7);
+        assertEquals(this.controller.getSumFromGuests("i6"),2647.65,0.1);
     }
 
     @Test
@@ -288,7 +295,7 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testSignUpForAlreadySignedUpGuest()throws NoMoreAvailableTicketsException{
+    void testSignUpForAlreadySignedUpGuest(){
         // guest already signed up -> sign up again not possible
         Guest guest1 = this.controller.findGuestByUsername("maria01");
         Attraction attraction1 = this.controller.getAllAttractions().get(4);
@@ -299,7 +306,7 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testUnSuccesfulSignUpForAttractionWithNoFreePlaces(){
+    void testUnSuccessfulSignUpForAttractionWithNoFreePlaces(){
         // sign up when there are no free places -> not possible
         Attraction attraction2 = this.controller.getAttractionsSortedByTitle().get(3);
         assertEquals(attraction2.getNrOfFreePlaces(), 0);
@@ -308,7 +315,7 @@ class RegistrationSystemTest{
     }
 
     @Test
-    void testSuccesfulSignUpForAttraction() throws NoMoreAvailableTicketsException{
+    void testSuccessfulSignUpForAttraction() {
         Attraction attraction = this.controller.getAllAttractions().get(4);
         // successful sign up -> number of free places decreases, sum paid by guests increases
         Guest guest = new Guest("ioana_maria","Ioana", "Maria", "passw123", LocalDate.of(1970,8,10));
@@ -370,7 +377,7 @@ class RegistrationSystemTest{
 
     @Test
     void testGetAverageSalaryOfInstructors() {
-        assertEquals(controller.getAverageSalaryOfInstructors(),668.116,0.1);
+        assertEquals(controller.getAverageSalaryOfInstructors(),607.94,0.1);
     }
 
     @Test
@@ -383,12 +390,81 @@ class RegistrationSystemTest{
         assertEquals(instructor.getFinalSum(), 1000);
 
         instructor = instructorsWithHighSalary.get(1);
-        assertEquals(instructor.getFinalSum(), 3008.7);
+        assertEquals(instructor.getFinalSum(), 2647.65,0.1);
 
         // any other instructor have lower salary
         instructor = controller.getAllInstructors().get(2);
         assertFalse(instructorsWithHighSalary.contains(instructor));
         assertEquals(instructor.getFinalSum(), 0);
+    }
 
+    @Test
+    void testVerifyIncorrectUserInputNameAndPassword() {
+        // firstname and lastname containing not only letters -> incorrect input
+        assertFalse(controller.verifyUserInputNameAndPassword("samantha1","Samantha1", "Baker", "12345"));
+        assertFalse(controller.verifyUserInputNameAndPassword("samantha2","Samantha", "Baker1", "12345"));
+        // too short password (less than 3 characters) -> incorrect input
+        assertFalse(controller.verifyUserInputNameAndPassword("samantha2","Samantha", "Baker", "ab"));
+    }
+
+    @Test
+    void testVerifyCorrectUserInputNameAndPassword() {
+        assertTrue(controller.verifyUserInputNameAndPassword("samantha2","Samantha", "Baker", "abcd"));
+    }
+
+    @Test
+    void testVerifiedUserInputGuest() {
+        // incorrect username (containing uppercase letters too)
+        assertNull(controller.verifiedUserInputGuest("SAMANTHA2","Samantha","Baker","2000-10-10", "abcd"));
+        // incorrect name (containing not only letters)
+        assertNull(controller.verifiedUserInputGuest("samantha2","Samantha12","Baker34","2000-10-10", "abcd"));
+        // incorrect birthday format (not YEAR-MONTH-DAY)
+        assertNull(controller.verifiedUserInputGuest("samantha2","Samantha","Baker","2000.10.10", "abcd"));
+        // incorrect password (less than 3 characters)
+        assertNull(controller.verifiedUserInputGuest("samantha2","Samantha","Baker","2000-10-10", "12"));
+        // all given data incorrect
+        assertNull(controller.verifiedUserInputGuest("maria01","Maria*@","Baker12","2000-30-10", "abcd123"));
+    }
+
+    @Test
+    void testVerifiedIncorrectUserInputWeekday() {
+        assertNull(controller.verifiedUserInputWeekday("Donnerstag"));
+    }
+
+    @Test
+    void testVerifiedCorrectUserInputWeekday() {
+        assertInstanceOf(Weekday.class,(controller.verifiedUserInputWeekday("Monday")));
+        // small letters are also allowed
+        assertInstanceOf(Weekday.class,(controller.verifiedUserInputWeekday("monday")));
+    }
+
+    @Test
+    void testVerifiedIncorrectUserInputPrice() {
+        assertEquals(controller.verifiedUserInputPrice("23.4"),23.4);
+        assertEquals(controller.verifiedUserInputPrice("one hundred"),0.0);
+    }
+
+    @Test
+    void testVerifiedCorrectUserInputPrice() {
+        assertEquals(controller.verifiedUserInputPrice("23,4"),0.0);
+    }
+
+    @Test
+    void testVerifiedIncorrectUserInputAttraction() {
+        // capacity incorrect
+        assertNull(controller.verifiedUserInputAttraction("Birds show", "50.5", "100", "Main1", "Monday"));
+        // weekday incorrect
+        assertNull(controller.verifiedUserInputAttraction("Birds show", "50", "100", "Main1", "Donnerstag"));
+        // price incorrect
+        assertNull(controller.verifiedUserInputAttraction("Birds show", "50", "one hundred", "Main1", "Monday"));
+    }
+
+    @Test
+    void testVerifiedCorrectUserInputAttraction() {
+        Attraction attraction = controller.verifiedUserInputAttraction("Birds show", "50", "100.3", "Main1", "Monday");
+        assertEquals(attraction.name, "Birds show");
+        assertEquals(attraction.getCapacity(), 50);
+        assertEquals(attraction.price, 100.3);
+        assertEquals(attraction.day.getNr(), 1);
     }
 }

@@ -12,13 +12,26 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * UI (View) - visualization of data, calling the methods of the controller.
+ */
 public class UI {
+    /**
+     * Controller, whose methods are called.
+     */
     private final RegistrationSystem controller;
 
+    /**
+     * Constructor - constructs and initializes UI. <br>
+     * @param controller Controller whose methods are called
+     */
     public UI(RegistrationSystem controller) {
         this.controller = controller;
     }
 
+    /**
+     * Shows registration-menu with options.
+     */
     public void showMenuRegistration() {
         System.out.println("""
                 
@@ -27,6 +40,9 @@ public class UI {
                 """);
     }
 
+    /**
+     * Shows Guest-menu with options - the functionalities which are available for the Guest.
+     */
     public void showMenuGuest(){
         System.out.println("""
                 
@@ -42,6 +58,9 @@ public class UI {
                 """);
     }
 
+    /**
+     * Shows Instructor-menu with options - the functionalities which are available for the Instructor.
+     */
     public void showMenuInstructor(){
         System.out.println("""
                 
@@ -53,6 +72,9 @@ public class UI {
                 """);
     }
 
+    /**
+     * Shows Manager-menu with options - the functionalities which are available for the Manager - statistical data.
+     */
     public void showMenuManager(){
         System.out.println("""
                 
@@ -69,6 +91,9 @@ public class UI {
                 """);
     }
 
+    /**
+     * Shows Menu ->  Instructor - Guest - Manager
+     */
     // menu Instructor - Guest - Manager
     public void showMenuIGM(){
         System.out.println("""
@@ -79,6 +104,9 @@ public class UI {
                 """);
     }
 
+    /**
+     * Reads in input and shows menu points and results respectively.
+     */
     public void getUserChoice(){
         System.out.println("Wähle eine Option: ");
         this.showMenuIGM();
@@ -143,15 +171,18 @@ public class UI {
                                 System.out.println("Attraktion ist nicht eingefügt");
                             break;
                         case 3:
-                            System.out.println(this.controller.getAttractionsOfInstructor(username));
-                            System.out.println("Gib ID-Attraktion an: ");
-                            emptyLine = in.nextLine();
-                            idAttraction = in.nextLine();
-                            successful = this.controller.deleteAttraction(username, idAttraction);
-                            if (successful)
-                                System.out.println("Attraktion ist abgesagt");
-                            else
-                                System.out.println("Prozess fehlgeschlafen");
+                            List<Attraction> attractions = this.controller.getAttractionsOfInstructor(username);
+                            if (attractions.size() > 0) {
+                                System.out.println(attractions);
+                                System.out.println("Gib ID-Attraktion an: ");
+                                emptyLine = in.nextLine();
+                                idAttraction = in.nextLine();
+                                successful = this.controller.deleteAttraction(username, idAttraction);
+                                if (successful)
+                                    System.out.println("Attraktion ist abgesagt");
+                                else
+                                    System.out.println("Prozess fehlgeschlafen");
+                            }
                             break;
                         case 4:
                             System.out.println("Summe: " + this.controller.getSumFromGuests(username));
@@ -235,10 +266,11 @@ public class UI {
                                 System.out.println(this.controller.getAttractionsOfGuest(username));
                                 break;
                             case 6:
-                                System.out.println(this.controller.getFinalSumOfGuest(username));
+                                System.out.println("Die bezahlende Endsumme: " + this.controller.getFinalSumOfGuest(username));
                                 break;
                             case 7:
                                 System.out.println(this.controller.getAttractionsSortedByPriceAscending());
+                                break;
                             case 8:
                                 System.out.print("Gib den maximum Preis: ");
                                 emptyLine = in.nextLine();
@@ -322,7 +354,10 @@ public class UI {
             }
         }
 
-
+    /**
+     * Reads in input for a new Guest, which data will be verified in Controller.
+     * @return new Guest - if the input is correct, false otherwise
+     */
     public Guest readInGuest(){
         Scanner in = new Scanner(System.in);
         System.out.print("Gib deinen Username an: ");
@@ -339,6 +374,10 @@ public class UI {
         return guest;
     }
 
+    /**
+     * Reads in input for a new Instructor, which data will be verified in Controller.
+     * @return new Instructor - if the input is correct, false otherwise
+     */
     public Instructor readInInstructor() {
         Scanner in = new Scanner(System.in);
         System.out.print("Gib deinen Username an: ");
@@ -355,6 +394,10 @@ public class UI {
         return null;
     }
 
+    /**
+     * Reads in input for a new Attraction, which data will be verified in Controller.
+     * @return new Attraction - if the input is correct, false otherwise
+     */
     public Attraction readInAttraction() {
         Scanner in = new Scanner(System.in);
         System.out.print("Gib der Name der Attraktion an: ");
@@ -370,6 +413,11 @@ public class UI {
         return this.controller.verifiedUserInputAttraction(name, capacity, price, location, weekday);
     }
 
+    /**
+     * The method shows specific data about the Guests in a list received as a parameter. <br>
+     * It uses the getData() method of the class Guest.
+     * @param guests list of Guests about which we want to see specific data.
+     */
     public void showGuestData(List<Guest> guests){
         for (Guest g: guests){
             System.out.println(g.getData());

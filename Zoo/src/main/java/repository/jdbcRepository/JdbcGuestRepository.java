@@ -12,18 +12,30 @@ import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * JdbcGuestRepository implements the interface InstructorRepository. The data is saved in database.
+ */
 public class JdbcGuestRepository implements GuestRepository {
+    /**
+     * AttractionRepository from where the Attractions are selected on which the Guests can sign up.
+     */
     private final JdbcAttractionRepository attractionRepository;
+    /**
+     * EntityManager - used for different operations with database
+     */
     private final EntityManager manager;
-    private final Connection connection;
 
     public JdbcGuestRepository(JdbcAttractionRepository attractionRepository) {
         this.attractionRepository = attractionRepository;
         this.manager = attractionRepository.getManager();
-        this.connection = attractionRepository.getConnection();
-        this.populateGuests();
+        // this.populateGuests();
     }
 
+    /**
+     * This method populates with Guests the database.
+     * When an Attraction is added to the Guest's list of Attraction, the Guest appears in the Guest-list of the Attraction as well. <br>
+     * The Instructor's income will also increase.
+     */
     private void populateGuests(){
         List<Attraction> attractions = attractionRepository.getAllAttractions();
 
@@ -72,13 +84,12 @@ public class JdbcGuestRepository implements GuestRepository {
         // update instructor table in database
         attractionRepository.getInstructorRepository().update(instr1.getID(), instr1);
         attractionRepository.getInstructorRepository().update(instr2.getID(), instr2);
-
-        manager.getTransaction().begin();
-        manager.persist(guest1);  manager.persist(guest2);  manager.persist(guest3);  manager.persist(guest4);  manager.persist(guest5);  manager.persist(guest6);
-        manager.persist(guest7);  manager.persist(guest8);  manager.persist(guest9);  manager.persist(guest10);  manager.persist(guest11);  manager.persist(guest12);
-        manager.persist(guest13);  manager.persist(guest14);  manager.persist(guest15);  manager.persist(guest16);  manager.persist(guest17);  manager.persist(guest18);
-        manager.getTransaction().commit();
     }
+
+    /**
+     * This method reads out from the database and returns the list of Guests.
+     * @return The list of Guests
+     */
     @Override
     public List<Guest> getAllGuests(){
         manager.getTransaction().begin();
@@ -88,17 +99,27 @@ public class JdbcGuestRepository implements GuestRepository {
         return guests;
     }
 
+    /**
+     * This method adds a Guest to the database. <br>
+     * If there is already a Guest in the repository with the same ID, the new Guest won't be added.
+     * @param guest Guest who will be added.
+     */
     @Override
     public void add(Guest guest) {
-        try{
-            if (this.findByID(guest.getID())==null){
+        try {
+            if (this.findByID(guest.getID()) == null) {
                 manager.getTransaction().begin();
                 manager.persist(guest);
                 manager.getTransaction().commit();
             }
-        }catch (NullPointerException ignored){}
+            else System.out.println("Es gibt schon einen Benutzer mit dieser ID");
+        } catch (NullPointerException ignored){}
     }
 
+    /**
+     * This method deletes a Guest from the database.
+     * @param id String - the ID of the Guest who will be eliminated
+     */
     @Override
     public void delete(String id){
         Guest guest = this.findByID(id);
@@ -107,6 +128,11 @@ public class JdbcGuestRepository implements GuestRepository {
         manager.getTransaction().commit();
     }
 
+    /**
+     * This method updates a Guest in the database. <br>
+     * @param idGuest String - the ID of the Guest who will be updated
+     * @param guest the new Guest who will appear instead of the old Guest
+     */
     @Override
     public void update(String idGuest, Guest guest){
         Guest g = this.findByID(idGuest);
@@ -122,6 +148,11 @@ public class JdbcGuestRepository implements GuestRepository {
         }
     }
 
+    /**
+     * This method returns the Guest who has the ID given as a parameter. <br>
+     * @param idGuest String - the ID of the Guest who is searched
+     * @return the Guest who has the ID given as a parameter or null if there is no Guest with the given ID
+     */
     @Override
     public Guest findByID(String idGuest) {
         try {

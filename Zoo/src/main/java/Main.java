@@ -21,7 +21,7 @@ public class Main {
 //        ui.getUserChoice();
 
         // database
-        JdbcInstructorRepository jdbcInstructorRepository = new JdbcInstructorRepository("default","jdbc:postgresql://localhost:5432/Zoo","postgres","login");
+        JdbcInstructorRepository jdbcInstructorRepository = new JdbcInstructorRepository("default");
         JdbcAttractionRepository jdbcAttractionRepository = new JdbcAttractionRepository(jdbcInstructorRepository);
         GuestRepository jdbcGuestRepository = new JdbcGuestRepository(jdbcAttractionRepository);
 

@@ -9,16 +9,35 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * InMemoryGuestRepository implements the interface InstructorRepository. The data is saved in memory.
+ */
 public class InMemoryGuestRepository implements GuestRepository {
+    /**
+     * List of Guests
+     */
     private List<Guest> allGuests;
+    /**
+     * AttractionRepository from where the Attractions are selected on which the Guests can sign up.
+     */
     private final AttractionRepository attractionRepository;
 
+    /**
+     * Constructor - constructs and initializes an InMemoryGuestRepository. <br>
+     * Initially the list of Guests is empty, then the method populateGuests() is called.
+     * @param attractionRepository AttractionRepository from where the Attractions are selected on which the Guests can sign up
+     */
     public InMemoryGuestRepository(AttractionRepository attractionRepository) {
         this.attractionRepository = attractionRepository;
         this.allGuests = new ArrayList<Guest>();
         this.populateGuests();
     }
 
+    /**
+     * This method populates with data the list of Guests with the help of add() method. <br>
+     * When an Attraction is added to the Guest's list of Attraction, the Guest appears in the Guest-list of the Attraction as well. <br>
+     * The Instructor's income will also increase.
+     */
     private void populateGuests(){
         List<Attraction> attractions = attractionRepository.getAllAttractions();
 
@@ -69,11 +88,20 @@ public class InMemoryGuestRepository implements GuestRepository {
         attraction8.getInstructor().calculateSum();
     }
 
+    /**
+     * This method returns the list of Guests.
+     * @return The list of Guests
+     */
     @Override
     public List<Guest> getAllGuests() {
         return this.allGuests;
     }
 
+    /**
+     * This method adds a Guest to the list of Guests. <br>
+     * If there is already a Guest in the repository with the same ID, the new Guest won't be added.
+     * @param guest Guest who will be added.
+     */
     @Override
     public void add(Guest guest) {
         try {
@@ -87,12 +115,21 @@ public class InMemoryGuestRepository implements GuestRepository {
         } catch (NullPointerException ignored) {}
     }
 
+    /**
+     * This method deletes a Guest from the list of Instructors.
+     * @param id String - the ID of the Guest who will be eliminated
+     */
     @Override
     public void delete(String id) {
         Guest guest = this.findByID(id);
         this.allGuests.remove(guest);
     }
 
+    /**
+     * This method updates a Guest from the list of Guests. <br>
+     * @param id String - the ID of the Guest who will be updated
+     * @param guest the new Guest who will appear instead of the old Guest
+     */
     @Override
     public void update(String id, Guest guest) {
         Guest g = this.findByID(id);
@@ -100,6 +137,11 @@ public class InMemoryGuestRepository implements GuestRepository {
         this.allGuests.set(position,guest);
     }
 
+    /**
+     * This method returns the Guest who has the ID given as a parameter. <br>
+     * @param id String - the ID of the Guest who is searched
+     * @return the Guest who has the ID given as a parameter or null if there is no Guest with the given ID
+     */
     @Override
     public Guest findByID(String id) {
         for (Guest g: this.allGuests){

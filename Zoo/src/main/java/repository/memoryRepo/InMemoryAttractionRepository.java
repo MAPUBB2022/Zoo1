@@ -10,16 +10,34 @@ import repository.InstructorRepository;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * InMemoryAttractionRepository implements the interface AttractionRepository. The data is saved in memory.
+ */
 public class InMemoryAttractionRepository implements AttractionRepository {
-
+    /**
+     * List of Attractions
+     */
     private final List<Attraction> allAttractions;
+    /**
+     * InstructorRepository from where the Instructor of the Attractions can be selected.
+     */
     private final InstructorRepository instructorRepository;
+
+    /**
+     * Constructor - constructs and initializes an InMemoryAttractionRepository. <br>
+     * Initially the List of Instructors is empty, then the method populateAttractions() is called.
+     * @param instructorRepository InstructorRepository from where the Instructor of the Attractions can be selected.
+     */
     public InMemoryAttractionRepository(InstructorRepository instructorRepository) {
         this.instructorRepository = instructorRepository;
         this.allAttractions = new ArrayList<Attraction>();
         this.populateAttractions();
     }
 
+    /**
+     * This method populates with data the list of Attraction with the help of add() method. <br>
+     * When the Instructor is added to the Attraction, the Attraction appears in the Attraction-list of the Instructor as well.
+     */
     private void populateAttractions(){
         List<Instructor> instructors = this.instructorRepository.getAllInstructors();
         Instructor instructor1 = instructors.get(0);
@@ -57,28 +75,46 @@ public class InMemoryAttractionRepository implements AttractionRepository {
         this.add(attraction8);
     }
 
+    /**
+     * This method returns the list of Attractions.
+     * @return The list of Attractions
+     */
     @Override
     public List<Attraction> getAllAttractions() {
         return allAttractions;
     }
 
+    /**
+     * This method adds an Attraction to the list of Attractions. <br>
+     * If there is already an Attraction in the repository with the same ID, the new Attraction won't be added.
+     * @param attraction Attraction which will be added.
+     */
     @Override
     public void add(Attraction attraction) {
         for (Attraction attr: this.allAttractions){
             if (attr.getID().equals(attraction.getID())){
-                System.out.println("Attraction with this ID already exists");
+                System.out.println("Eine Attraktion mit dieser ID existiert schon");
                 return;
             }
         }
         this.allAttractions.add(attraction);
     }
 
+    /**
+     * This method deletes an Attraction from the list of Attractions.
+     * @param id String - the ID of the Attraction which will be eliminated
+     */
     @Override
     public void delete(String id) {
         Attraction attraction = this.findByID(id);
         this.allAttractions.remove(attraction);
     }
 
+    /**
+     * This method updates an Attraction from the list of Attractions. <br>
+     * @param id String - the ID of the Attraction which will be updated
+     * @param attraction the new Attraction which will appear instead of the old Attraction
+     */
     @Override
     public void update(String id, Attraction attraction) {
         Attraction attr = this.findByID(id);
@@ -86,6 +122,11 @@ public class InMemoryAttractionRepository implements AttractionRepository {
         this.allAttractions.set(position,attraction);
     }
 
+    /**
+     * This method returns the Attraction who has the ID given as a parameter. <br>
+     * @param id String - the ID of the Attraction who is searched
+     * @return the Attraction which has the ID given as a parameter or null if there is no Attraction with the given ID
+     */
     @Override
     public Attraction findByID(String id) {
         for (Attraction attraction: this.allAttractions){

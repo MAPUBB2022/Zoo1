@@ -10,18 +10,34 @@ import javax.persistence.*;
 import java.sql.Connection;
 import java.util.List;
 
+/**
+ * JdbcAttractionRepository implements the interface AttractionRepository. The data is saved in database.
+ */
 public class JdbcAttractionRepository implements AttractionRepository {
+    /**
+     * InstructorRepository from where the Instructor of the Attractions can be selected.
+     */
     private final InstructorRepository instructorRepository;
+    /**
+     * EntityManager - used for different operations with database
+     */
     private final EntityManager manager;
-    private final Connection connection;
 
+    /**
+     * Constructor - constructs and initializes an JdbcAttractionRepository. <br>
+     * Initially the List of Instructors is empty, then the method populateAttractions() is called.
+     * @param instructorRepository InstructorRepository from where the Instructor of the Attractions can be selected.
+     */
     public JdbcAttractionRepository(JdbcInstructorRepository instructorRepository) {
         this.instructorRepository = instructorRepository;
         this.manager = instructorRepository.getManager();
-        this.connection = instructorRepository.getConnection();
-        this.populateAttractions();
+        // this.populateAttractions();
     }
 
+    /**
+     * This method populates with Attractions the database. <br>
+     * When the Instructor is added to the Attraction, the Attraction appears in the Attraction-list of the Instructor as well.
+     */
     private void populateAttractions(){
         List<Instructor> instructors = this.instructorRepository.getAllInstructors();
         Instructor instructor1 = instructors.get(0);
@@ -56,18 +72,12 @@ public class JdbcAttractionRepository implements AttractionRepository {
         instructorRepository.update(instructor4.getID(), instructor4);
         instructorRepository.update(instructor5.getID(), instructor5);
         instructorRepository.update(instructor6.getID(), instructor6);
-
-        manager.getTransaction().begin();
-        manager.persist(attraction1);
-        manager.persist(attraction2);
-        manager.persist(attraction3);
-        manager.persist(attraction4);
-        manager.persist(attraction5);
-        manager.persist(attraction6);
-        manager.persist(attraction7);
-        manager.persist(attraction8);
-        manager.getTransaction().commit();
     }
+
+    /**
+     * This method reads out from the database and returns the list of Attractions.
+     * @return The list of Attractions
+     */
     @Override
     public List<Attraction> getAllAttractions() {
         manager.getTransaction().begin();
@@ -77,14 +87,27 @@ public class JdbcAttractionRepository implements AttractionRepository {
         return attractions;
     }
 
+    /**
+     * This method adds an Attraction to the database. <br>
+     * If there is already an Attraction in the repository with the same ID, the new Attraction won't be added.
+     * @param attraction Attraction which will be added.
+     */
     @Override
     public void add(Attraction attraction) {
-        if (this.findByID(attraction.getID()) == null) {
-            manager.getTransaction().begin();
-            manager.persist(attraction);
-            manager.getTransaction().commit();
-        }
+        try {
+            if (this.findByID(attraction.getID()) == null) {
+                manager.getTransaction().begin();
+                manager.persist(attraction);
+                manager.getTransaction().commit();
+            }
+            else System.out.println("Eine Attraktion mit dieser ID existiert schon");
+        } catch (NullPointerException ignored){}
     }
+
+    /**
+     * This method deletes an Attraction from the databases.
+     * @param id String - the ID of the Attraction which will be eliminated
+     */
     @Override
     public void delete(String id){
         Attraction attraction = this.findByID(id);
@@ -93,6 +116,11 @@ public class JdbcAttractionRepository implements AttractionRepository {
         manager.getTransaction().commit();
     }
 
+    /**
+     * This method updates an Attraction in the database. <br>
+     * @param idAttraction String - the ID of the Attraction which will be updated
+     * @param attraction the new Attraction who will appear instead of the old Attraction
+     */
     @Override
     public void update(String idAttraction, Attraction attraction){
         Attraction attr = this.findByID(idAttraction);
@@ -109,6 +137,11 @@ public class JdbcAttractionRepository implements AttractionRepository {
         }
     }
 
+    /**
+     * This method returns the Attraction who has the ID given as parameter. <br>
+     * @param idAttraction String - the ID of the Attraction who is searched
+     * @return the Attraction who has the ID given as parameter or null if there is no Attraction with the given ID
+     */
     @Override
     public Attraction findByID(String idAttraction) {
         try{
@@ -120,14 +153,18 @@ public class JdbcAttractionRepository implements AttractionRepository {
             return null;}
     }
 
+    /**
+     * This method returns the EntityManager.
+     * @return EntityManager of the repository
+     */
     public EntityManager getManager(){
         return manager;
     }
 
-    public Connection getConnection(){
-        return connection;
-    }
-
+    /**
+     * This method returns the InstructorRepository from where were the Instructors of the Attractions were selected.
+     * @return Instructor
+     */
     public InstructorRepository getInstructorRepository(){
         return instructorRepository;
     }
