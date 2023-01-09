@@ -87,7 +87,8 @@ public class UI {
                 7. Attraktionen nach BesucherAnzahl sortiert
                 8. Zeige Instruktoren mit höherem Einkommen als der Durchschnitt
                 9. Zeige durschnittliche Einkommen der Instruktoren
-                10. Exit
+                10. Die Einkünfte des Zoos 
+                11. Exit
                 """);
     }
 
@@ -111,7 +112,7 @@ public class UI {
         System.out.println("Wähle eine Option: ");
         this.showMenuIGM();
         Scanner in = new Scanner(System.in);
-        int choice = in.nextInt(), choiceMenu = 0;
+        int choice = in.nextInt(), choiceMenu = 0, count;
         boolean successful;
         double value;
         String idGuest = null, idAttraction = null, idInstructor, emptyLine, username = null, password;
@@ -141,14 +142,19 @@ public class UI {
                             password = in.nextLine();
                             Instructor instr = this.controller.findInstructorByUsername(username);
                             if (instr != null) {
-                                while (!instr.matchesPassword(password)) {
+                                count = 0;
+                                while (!instr.matchesPassword(password) && count != 3) {
                                     System.out.print("Falsches Passwort, versuche es wieder: ");
                                     password = in.nextLine();
+                                    count++;
                                 }
-                                successful = true;
-                                System.out.println("Das Passwort passt!");
+                                if (count != 3){
+                                    successful = true;
+                                    System.out.println("Das Passwort passt!");
+                                }
+                                else System.out.println("Die gegebenen Passwörter waren falsch!");
                             } else
-                                System.out.println("Es gibt keine Instruktor mit diesem Benutzername");
+                                System.out.println("Es gibt keinen Instruktor der sich mit diesem Usernamen registriert hat.");
                             break;
                         default:
                             System.out.println("Es gibt so eine Option nicht");
@@ -221,14 +227,19 @@ public class UI {
                                 password = in.nextLine();
                                 Guest g = this.controller.findGuestByUsername(username);
                                 if (g != null) {
-                                    while (!g.matchesPassword(password)) {
+                                    count = 0;
+                                    while (!g.matchesPassword(password) && count != 3) {
                                         System.out.print("Falsches Passwort, versuche es wieder: ");
                                         password = in.nextLine();
+                                        count++;
                                     }
-                                    successful = true;
-                                    System.out.println("Das Passwort passt!");
+                                    if (count != 3){
+                                        successful = true;
+                                        System.out.println("Das Passwort passt!");
+                                    }
+                                    else System.out.println("Die eingegebenen Passwörter waren falsch!");
                                 } else
-                                    System.out.println("Es gibt keinen Benutzer mit diesem Username");
+                                    System.out.println("Es gibt keinen Benutzer der sich mit diesem Usernamen registriert hat.");
                                 break;
                             default:
                                 System.out.println("Es gibt so eine Option nicht");
@@ -288,7 +299,7 @@ public class UI {
                 } else {
                     showMenuManager();
                     choiceMenu = in.nextInt();
-                    while (choiceMenu != 10) {
+                    while (choiceMenu != 11) {
                         switch (choiceMenu) {
                             case 1:
                                 System.out.println(this.controller.getAllAttractions());
@@ -336,9 +347,12 @@ public class UI {
                                 System.out.println(this.controller.filterInstructorsWithHigherSalaryThanAverage());
                                 break;
                             case 9:
-                                System.out.println(this.controller.getAverageSalaryOfInstructors());
+                                System.out.printf("%s %.2f%n", "Durschnittliche Einkommen der Instruktoren: ", this.controller.getAverageSalaryOfInstructors());
                                 break;
                             case 10:
+                                System.out.printf("%s %.2f%n", "Die Einkünfte des Zoos sind: ", this.controller.getIncomeOfTheZoo());
+                                break;
+                            case 11:
                                 break;
                             default:
                                 System.out.println("Es gibt so eine Option nicht");

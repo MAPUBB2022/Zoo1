@@ -198,7 +198,7 @@ public class Guest extends Person implements Comparable<Guest>{
      */
     @Override
     public String toString() {
-        return super.toString() +
+        return super.toString() + '\t' +
                 "birthday=" + birthday + '\n';
     }
 }

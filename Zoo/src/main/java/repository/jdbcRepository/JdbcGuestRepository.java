@@ -8,6 +8,7 @@ import repository.GuestRepository;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
 import java.sql.Connection;
 import java.time.LocalDate;
 import java.util.List;
@@ -67,23 +68,34 @@ public class JdbcGuestRepository implements GuestRepository {
         Guest guest17 = new Guest("jackie23","Jackie", "Chan", "passw0rd", LocalDate.of(1995,3,16));
         Guest guest18 = new Guest("terence_hill","Terence", "Hill", "111111", LocalDate.of(1988,9,29));
 
-        guest1.addAttraction(attraction8); guest3.addAttraction(attraction8); guest5.addAttraction(attraction8); guest7.addAttraction(attraction8); guest9.addAttraction(attraction8);
+        guest18.addAttraction(attraction8); guest3.addAttraction(attraction8); guest5.addAttraction(attraction8); guest7.addAttraction(attraction8); guest9.addAttraction(attraction8);
         guest11.addAttraction(attraction8); guest13.addAttraction(attraction8); guest15.addAttraction(attraction8); guest17.addAttraction(attraction8); guest18.addAttraction(attraction8);
 
-        attraction8.addGuest(guest1); attraction8.addGuest(guest3); attraction8.addGuest(guest5); attraction8.addGuest(guest7); attraction8.addGuest(guest9);
+        attraction8.addGuest(guest18); attraction8.addGuest(guest3); attraction8.addGuest(guest5); attraction8.addGuest(guest7); attraction8.addGuest(guest9);
         attraction8.addGuest(guest11); attraction8.addGuest(guest13); attraction8.addGuest(guest15); attraction8.addGuest(guest17); attraction8.addGuest(guest18);
 
         guest1.addAttraction(attraction5); guest2.addAttraction(attraction5); guest3.addAttraction(attraction5); guest4.addAttraction(attraction5);
-
         attraction5.addGuest(guest1); attraction5.addGuest(guest2); attraction5.addGuest(guest3); attraction5.addGuest(guest4);
 
-        Instructor instr1 = attraction5.getInstructor();
-        Instructor instr2  = attraction8.getInstructor();
-        instr1.calculateSum(); instr2.calculateSum();
+        guest4.addAttraction(attraction4); guest6.addAttraction(attraction4);
+        attraction4.addGuest(guest4); attraction4.addGuest(guest6);
+
+        guest12.addAttraction(attraction7); guest14.addAttraction(attraction7); guest15.addAttraction(attraction7);
+        attraction7.addGuest(guest12); attraction7.addGuest(guest14); attraction7.addGuest(guest15);
+
+        guest5.addAttraction(attraction2); guest8.addAttraction(attraction2);
+        attraction2.addGuest(guest5); attraction2.addGuest(guest8);
+
+        Instructor instr1 = attraction5.getInstructor(), instr2 = attraction8.getInstructor();
+        Instructor instr3 = attraction4.getInstructor(), instr4 = attraction7.getInstructor();
+        Instructor instr5 = attraction2.getInstructor();
+
+        instr1.calculateSum(); instr2.calculateSum(); instr3.calculateSum(); instr4.calculateSum(); instr5.calculateSum();
 
         // update instructor table in database
         attractionRepository.getInstructorRepository().update(instr1.getID(), instr1);
         attractionRepository.getInstructorRepository().update(instr2.getID(), instr2);
+        attractionRepository.getInstructorRepository().update(instr3.getID(), instr3);
     }
 
     /**

@@ -282,7 +282,7 @@ public class RegistrationSystem {
         } catch (NoSuchDataException e) {
             System.out.println(e.getMessage());
         } catch (NullPointerException e) {
-            System.out.println("Besucher mit dem angegebenen Benutzername existiert nicht");
+            System.out.println("Besucher mit dem angegebenen Benutzernamen existiert nicht");
         }
         return attractions;
     }
@@ -303,7 +303,7 @@ public class RegistrationSystem {
         } catch (NoSuchDataException e) {
             System.out.println(e.getMessage());
         } catch (NullPointerException e) {
-            System.out.println("Instruktor mit dem angegebenen Benutzername existiert nicht");
+            System.out.println("Instruktor mit dem angegebenen Benutzernamen existiert nicht");
         }
         return attractions;
     }
@@ -384,6 +384,18 @@ public class RegistrationSystem {
     public double getSumFromGuests(String idInstructor) {
         Instructor instructor = this.findInstructorByUsername(idInstructor);
         return instructor.getFinalSum();
+    }
+
+    /**
+     * This method returns the income of the Zoo. The value represents the sum of the Instructors' income.
+     * @return Double - the income of the Zoo
+     */
+    public double getIncomeOfTheZoo() {
+        double sum=0;
+        for (Instructor instructor: this.getAllInstructors()){
+            sum += instructor.getFinalSum();
+        }
+        return sum;
     }
 
     /**

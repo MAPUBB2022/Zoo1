@@ -42,6 +42,9 @@ class RegistrationSystemTest{
         this.controller = new RegistrationSystem(attractionRepository, guestRepository, instructorRepository);
     }
 
+    /**
+     * Test for getAllAttractions.
+     */
     @Test
     void testGetAllAttractions(){
         List<Attraction> attractions = controller.getAllAttractions();
@@ -50,6 +53,13 @@ class RegistrationSystemTest{
         assertEquals(attractions.get(7).name, "VIP zoo show");
     }
 
+    /**
+     * Test for adding successfully an Attraction.
+     * <ul>
+     *     <li> the chosen Instructor id belongs to an Instructor in the repository </li>
+     *     <li> a new Instructor is added to the repository and after that is chosen as the Instructor of the attraction</>
+     * </ul>
+     */
     @Test
     void testSuccessfulAddAttraction() {
         // test with existing instructor id
@@ -63,6 +73,13 @@ class RegistrationSystemTest{
         assertTrue(controller.addAttraction(attraction2, "i10"));
     }
 
+    /**
+     * Test for adding unsuccessfully an Attraction.
+     * <ul>
+     *     <li> the chosen Instructor id does not belong to an Instructor in the repository </li>
+     *     <li> the attraction is already added to the repository (can't be added twice) </li>
+     * </ul>
+     */
     @Test
     void testUnSuccessfulAddAttraction() {
         // test with non-existent instructor id
@@ -75,6 +92,14 @@ class RegistrationSystemTest{
         assertFalse(controller.addAttraction(attraction2, "i3"));
     }
 
+    /**
+     * Test for getting Attractions with available places.
+     * <ul>
+     *     <li> size of the list is checked </li>
+     *     <li> Attraction with no more available place is not included </li>
+     *     <li> Attraction with available places is included </li>
+     * </ul>
+     */
     @Test
     void testGetAllAttractionsWithFreePlaces() throws NoSuchDataException {
         assertEquals(controller.getAllAttractionsWithFreePlaces().size(), 7);
@@ -89,6 +114,13 @@ class RegistrationSystemTest{
         assertTrue(controller.getAllAttractionsWithFreePlaces().contains(attractionWithFreePlaces));
     }
 
+    /**
+     * Test for getting Attractions sorted by title.
+     * <ul>
+     *     <li> size of the list is checked </li>
+     *     <li> the order is respected </li>
+     * </ul>
+     */
     @Test
     void testGetAttractionsSortedByTitle() {
         List<Attraction> sortedAttractions = controller.getAttractionsSortedByTitle();
@@ -97,6 +129,10 @@ class RegistrationSystemTest{
         assertEquals(sortedAttractions.get(7).name, "Zoo time");
     }
 
+    /**
+     * Test for getting Attractions after a given day. <br>
+     * Size of the list is checked for different weekdays.
+     */
     @Test
     void testGetAttractionsAfterAGivenDay(){
         assertEquals(controller.getAttractionsAfterAGivenDay(THURSDAY).size(), 4);
@@ -105,6 +141,14 @@ class RegistrationSystemTest{
         assertEquals(attractions.get(0), controller.getAllAttractions().get(6));
     }
 
+    /**
+     * Test for getting Guests of a given Attractions. <br>
+     * <ul>
+     *     <li> size of the list is checked for different Attractions </li>
+     *     <li> verified if the list contains signed up guest </li>
+     *     <li> verified if the list does not contain NOT signed up guest </li>
+     * </ul>
+     */
     @Test
     void testGetGuestsOfAttraction(){
         String idAttraction1 = controller.getAttractionsSortedByTitle().get(3).getID();
@@ -121,6 +165,9 @@ class RegistrationSystemTest{
         assertFalse(controller.getGuestsOfAttraction(idAttraction2).contains(guest));
     }
 
+    /**
+     * Test for adding successfully a Guest (with unique username)
+     */
     @Test
     void testSuccessfulAddGuest() {
         // add a new guest with unique username
@@ -132,6 +179,14 @@ class RegistrationSystemTest{
         assertTrue(controller.addGuest(guest2));
     }
 
+    /**
+     * Test for adding unsuccessfully a Guest <br>
+     * Causes:
+     * <ul>
+     *     <li> Username is already taken (not unique) </li>
+     *     <li> The identified Guest is already registered </li>
+     * </ul>
+     */
     @Test
     void testUnSuccessfulAddGuest() {
         // add a new guest with existing username -> not possible
@@ -144,6 +199,9 @@ class RegistrationSystemTest{
         assertFalse(controller.addGuest(guest2));
     }
 
+    /**
+     * Test for adding successfully an Instructor (with unique username)
+     */
     @Test
     void testSuccessfulAddInstructor() {
         // add instructor with unique id
@@ -151,6 +209,14 @@ class RegistrationSystemTest{
         assertTrue(controller.addInstructor(instructor1));
     }
 
+    /**
+     * Test for adding unsuccessfully an Instructor <br>
+     * Causes:
+     * <ul>
+     *     <li> Username is already taken (not unique) </li>
+     *     <li> The identified Instructor is already registered </li>
+     * </ul>
+     */
     @Test
     void testUnSuccessfulAddInstructor() {
         // add instructor with existing id -> not possible
@@ -163,6 +229,9 @@ class RegistrationSystemTest{
         assertFalse(controller.addInstructor(instructor1));
     }
 
+    /**
+     * Test for getAllGuests.
+     */
     @Test
     void testGetAllGuests() {
         List<Guest> guests = this.controller.getAllGuests();
@@ -171,6 +240,15 @@ class RegistrationSystemTest{
         assertEquals(guests.get(17).getID(), "terence_hill");
     }
 
+    /**
+     * Test for getting Attractions of a given guest.
+     * <ul>
+     *     <li> size is verified </li>
+     *     <li> verified if the list contains adequate attractions </li>
+     *     <li> verified if the list does NOT contain inadequate attractions </li>
+     *     <li> empty list for guest who is not signed up to any attractions </li>
+     * </ul>
+     */
     @Test
     void testGetAttractionsOfGuest() {
         // test with a guest who signed up for 2 attractions
@@ -188,6 +266,16 @@ class RegistrationSystemTest{
         assertEquals(guestAttractions, new ArrayList<Attraction>());
     }
 
+    /**
+     * Test for getting the adequate final required sum from a Guest. <br>
+     * Guests can receive ticket discounts depending on their age:
+     * <ul>
+     *     <li> under 18 -> 50% discount </li>
+     *     <li> above 60 -> 20% discount </li>
+     * </ul>
+     * <br> After signing up to an Attraction the Guest's final sum increases.
+     * <br> After cancelling an Attraction the Guest's final sum decreases.
+     */
     @Test
     void testGetFinalSumOfGuest() throws NoMoreAvailableTicketsException{
         // under 18 -> ticket with discount
@@ -203,26 +291,40 @@ class RegistrationSystemTest{
         assertEquals(sumInstructor,0);
         assertEquals(attraction.getNrOfGuests(),0);
 
-        // sign up for attraction -> sum increases
+        // sign up for attraction -> sum is increased
         assertTrue(this.controller.signUpForAttraction("maria01", idAttraction));
         assertEquals(this.controller.getFinalSumOfGuest("maria01"),731.86);
         // instructor gets more money
         assertEquals(instructor.getFinalSum(), sumInstructor + attraction.price);
 
-        // attraction deleted -> sum increases (at guest and instructor too)
+        // attraction deleted -> sum is decreased (at guest and instructor too)
         this.controller.deleteAttraction("i1",idAttraction);
         assertEquals(this.controller.getFinalSumOfGuest("maria01"),550.87);
         assertEquals(instructor.getFinalSum(), sumInstructor);
     }
 
+    /**
+     * Test for getting the adequate final sum of an Instructor (income from Guests). <br>
+     */
     @Test
     void testGetSumFromGuests() {
-        // guest who did not sign up for attractions
+        // instructor who hold attractions where are yet no guests signed up
         assertEquals(this.controller.getSumFromGuests("i2"),0);
-        // guest who is going to attend more attractions
+        // instructor who holds more attractions with more Guests having discounts
         assertEquals(this.controller.getSumFromGuests("i6"),2647.65,0.1);
     }
 
+    /**
+     * Test for getting the income of the Zoo. <br>
+     */
+    @Test
+    void getIncomeOfTheZoo() {
+        assertEquals(this.controller.getIncomeOfTheZoo(),3647.65,0.1);
+    }
+
+    /**
+     * Test for getting Attractions sorted descending by sum.
+     */
     @Test
     void testGetGuestsSortedDescendingBySum() {
         List<Guest> guests = this.controller.getGuestsSortedDescendingBySum();
@@ -233,6 +335,9 @@ class RegistrationSystemTest{
         assertEquals(guests.get(17).getFinalSum(), 0.0);
     }
 
+    /**
+     * Test for getting Instructors.
+     */
     @Test
     void testGetAllInstructors() {
         List<Instructor> instructors = controller.getAllInstructors();
@@ -241,6 +346,9 @@ class RegistrationSystemTest{
         assertEquals(instructors.get(5).getID(), "i6");
     }
 
+    /**
+     * Test for identifying an Instructor by username.
+     */
     @Test
     void testFindInstructorByUsername(){
         Instructor instructor = this.controller.findInstructorByUsername("i2");
@@ -253,6 +361,9 @@ class RegistrationSystemTest{
         assertNull(instructor);
     }
 
+    /**
+     * Test for identifying a Guest by username.
+     */
     @Test
     void testFindGuestByUsername(){
         Guest guest = this.controller.findGuestByUsername("maria01");
@@ -265,6 +376,11 @@ class RegistrationSystemTest{
         assertNull(guest);
     }
 
+    /**
+     * Testing the change of an instructor. <br>
+     * Verify if in the Attraction-list of the old Instructor the Attraction disappeared and in
+     * the new Instructors' Attraction-list appeared.
+     */
     @Test
     void testChangeInstructorOfAttraction(){
         Instructor instructor1 = this.controller.findInstructorByUsername("i6");
@@ -294,9 +410,12 @@ class RegistrationSystemTest{
         assertFalse(succesful);
     }
 
+    /**
+     * Testing the sign-up for an Attraction for a Guest who was already signed up.
+     */
     @Test
-    void testSignUpForAlreadySignedUpGuest(){
-        // guest already signed up -> sign up again not possible
+    void testUnsuccesfulSignUpForAlreadySignedUpGuest(){
+        // guest already signed up -> sign-up again not possible
         Guest guest1 = this.controller.findGuestByUsername("maria01");
         Attraction attraction1 = this.controller.getAllAttractions().get(4);
         assertTrue(guest1.getAttractions().contains(attraction1));
@@ -305,6 +424,9 @@ class RegistrationSystemTest{
         assertFalse(successful);
     }
 
+    /**
+     * Testing the sign-up for an Attraction with no available places.
+     */
     @Test
     void testUnSuccessfulSignUpForAttractionWithNoFreePlaces(){
         // sign up when there are no free places -> not possible
@@ -314,6 +436,9 @@ class RegistrationSystemTest{
         assertFalse(this.controller.signUpForAttraction("ioana_maria", attraction2.getID()));
     }
 
+    /**
+     * Test for the successful sign-up for an Attraction.
+     */
     @Test
     void testSuccessfulSignUpForAttraction() {
         Attraction attraction = this.controller.getAllAttractions().get(4);
@@ -327,19 +452,32 @@ class RegistrationSystemTest{
         assertEquals(this.controller.getFinalSumOfGuest("ioana_maria"), attraction.price);
     }
 
+    /**
+     * Test for unsuccessfully cancelling an Attraction. When the Instructor who initiates the cancel is not the Instructor of the Attraction.
+     */
     @Test
-    void testDeleteAttraction() {
+    void testUnsuccessfulDeleteAttraction(){
         assertEquals(this.controller.getAllAttractions().size(), 8);
         Attraction attraction = this.controller.getAttractionsSortedByTitle().get(3);
 
         // delete attraction by another instructor than who holds the attraction -> not possible
         boolean successful = this.controller.deleteAttraction("i3", attraction.getID());
         assertFalse(successful);
+        assertEquals(this.controller.getAllAttractions().size(), 8);
+    }
+
+    /**
+     * Test for successfully cancelling an Attraction.
+     */
+    @Test
+    void testDeleteAttraction() {
+        assertEquals(this.controller.getAllAttractions().size(), 8);
+        Attraction attraction = this.controller.getAttractionsSortedByTitle().get(3);
 
         // delete attraction by own instructor -> changes appear at the guests too
         Instructor instructor = this.controller.findInstructorByUsername("i6");
         assertTrue(instructor.getAttractions().contains(attraction));
-        successful = this.controller.deleteAttraction("i6", attraction.getID());
+        boolean successful = this.controller.deleteAttraction("i6", attraction.getID());
         assertTrue(successful);
         for (Guest guest: attraction.guestList){
             assertFalse(guest.getAttractions().contains(attraction));
@@ -348,6 +486,9 @@ class RegistrationSystemTest{
         assertEquals(this.controller.getAllAttractions().size(), 7);
     }
 
+    /**
+     * Test for getting Attractions sorted ascending by price.
+     */
     @Test
     void testGetAttractionsSortedByPriceAscending() {
         List<Attraction> sortedAttractionsByPrice = controller.getAttractionsSortedByPriceAscending();
@@ -355,6 +496,9 @@ class RegistrationSystemTest{
         assertEquals(sortedAttractionsByPrice.get(7).price,300.87);
     }
 
+    /**
+     * Test for getting Attractions sorted by Guest number.
+     */
     @Test
     void testGetAttractionsSortedByGuestAscending() {
         List<Attraction> sortedAttractionsByNrOfGuests = controller.getAttractionsSortedByGuestAscending();
@@ -362,24 +506,36 @@ class RegistrationSystemTest{
         assertEquals(sortedAttractionsByNrOfGuests.get(0).getNrOfGuests(), 0);
     }
 
+    /**
+     * Test for getting Attractions with smaller price as a given value.
+     */
     @Test
-    void testFilterAttractionsByAGivenValue() throws NoSuchDataException {
+    void testFilterAttractionsByAGivenValue() {
         List<Attraction> sortedAttractions = controller.filterAttractionsByAGivenValue(99.99);
         assertEquals(sortedAttractions.size(),4);
     }
 
+    /**
+     * Test for getting Attractions with smaller price as a given value - when there are no matching Attractions.
+     */
     @Test
-    void testNotFoundDataFilterAttractionsByAGivenValue(){
+    void testNotFoundDataFilterAttractionsByAGivenValue() {
         // no matching attractions
         List<Attraction> attrWithPriceLessThan10 = this.controller.filterAttractionsByAGivenValue(10);
         assertEquals(attrWithPriceLessThan10.size(),0);
     }
 
+    /**
+     * Test for getting the average income of an Instructor.
+     */
     @Test
     void testGetAverageSalaryOfInstructors() {
         assertEquals(controller.getAverageSalaryOfInstructors(),607.94,0.1);
     }
 
+    /**
+     * Test for getting the Instructors with higher income as the average.
+     */
     @Test
     void testFilterInstructorsWithHigherSalaryThanAverage() {
         List<Instructor> instructorsWithHighSalary = controller.filterInstructorsWithHigherSalaryThanAverage();
@@ -398,6 +554,13 @@ class RegistrationSystemTest{
         assertEquals(instructor.getFinalSum(), 0);
     }
 
+    /**
+     * Test for incorrect user input regarding name and password.
+     * <ul>
+     *     <li> firstname and lastname containing not only letters </li>
+     *     <li> too short password (less than 3 characters) </li>
+     * </ul>
+     */
     @Test
     void testVerifyIncorrectUserInputNameAndPassword() {
         // firstname and lastname containing not only letters -> incorrect input
@@ -407,13 +570,26 @@ class RegistrationSystemTest{
         assertFalse(controller.verifyUserInputNameAndPassword("samantha2","Samantha", "Baker", "ab"));
     }
 
+    /**
+     * Test for correct user input regarding name and password.
+     */
     @Test
     void testVerifyCorrectUserInputNameAndPassword() {
         assertTrue(controller.verifyUserInputNameAndPassword("samantha2","Samantha", "Baker", "abcd"));
     }
 
+    /**
+     * Test for incorrect user input. <br>
+     * If any of the following appears:
+     * <ul>
+     *     <li> incorrect username (containing uppercase letters too) </li>
+     *     <li> incorrect name (containing not only letters) </li>
+     *     <li> incorrect birthday format (not YEAR-MONTH-DAY) </li>
+     *     <li> incorrect password (less than 3 characters)</li>
+     * </ul>
+     */
     @Test
-    void testVerifiedUserInputGuest() {
+    void testVerifiedIncorrectUserInputGuest() {
         // incorrect username (containing uppercase letters too)
         assertNull(controller.verifiedUserInputGuest("SAMANTHA2","Samantha","Baker","2000-10-10", "abcd"));
         // incorrect name (containing not only letters)
@@ -426,11 +602,17 @@ class RegistrationSystemTest{
         assertNull(controller.verifiedUserInputGuest("maria01","Maria*@","Baker12","2000-30-10", "abcd123"));
     }
 
+    /**
+     * Test for incorrect user input regarding Weekday. (not Enum-element)
+     */
     @Test
     void testVerifiedIncorrectUserInputWeekday() {
         assertNull(controller.verifiedUserInputWeekday("Donnerstag"));
     }
 
+    /**
+     * Test for correct user input regarding Weekday. (Enum-element)
+     */
     @Test
     void testVerifiedCorrectUserInputWeekday() {
         assertInstanceOf(Weekday.class,(controller.verifiedUserInputWeekday("Monday")));
@@ -438,17 +620,32 @@ class RegistrationSystemTest{
         assertInstanceOf(Weekday.class,(controller.verifiedUserInputWeekday("monday")));
     }
 
+    /**
+     * Test for incorrect user input regarding price.
+     */
     @Test
     void testVerifiedIncorrectUserInputPrice() {
-        assertEquals(controller.verifiedUserInputPrice("23.4"),23.4);
+        assertEquals(controller.verifiedUserInputPrice("23,4"),0.0);
         assertEquals(controller.verifiedUserInputPrice("one hundred"),0.0);
     }
 
+    /**
+     * Test for correct user input regarding price.
+     */
     @Test
     void testVerifiedCorrectUserInputPrice() {
-        assertEquals(controller.verifiedUserInputPrice("23,4"),0.0);
+        assertEquals(controller.verifiedUserInputPrice("23.4"),23.4);
     }
 
+    /**
+     * Test for incorrect user input regarding Attraction. <br>
+     * If any of the following appears:
+     * <ul>
+     *     <li> incorrect capacity type </li>
+     *     <li> incorrect day type(nut Enum-element) </li>
+     *     <li> incorrect price type </li>
+     * </ul>
+     */
     @Test
     void testVerifiedIncorrectUserInputAttraction() {
         // capacity incorrect
@@ -459,6 +656,9 @@ class RegistrationSystemTest{
         assertNull(controller.verifiedUserInputAttraction("Birds show", "50", "one hundred", "Main1", "Monday"));
     }
 
+    /**
+     * Test for correct user input regarding Attraction.
+     */
     @Test
     void testVerifiedCorrectUserInputAttraction() {
         Attraction attraction = controller.verifiedUserInputAttraction("Birds show", "50", "100.3", "Main1", "Monday");
